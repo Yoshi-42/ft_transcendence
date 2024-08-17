@@ -1,3 +1,6 @@
+!!! Ne pas passer Django en DEBUG = false (settings.py) !!!
+Sauf si vous voulez vous prendre la tete avec les fichiers statiques de django en prod ^^ 
+
 # ft_transcendence
 Projet ft_transcendence 42 Perpignan
 
