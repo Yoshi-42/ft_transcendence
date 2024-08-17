@@ -9,6 +9,11 @@ Tout est deja prevu dans Django, la creation d'un user admin, la config du fichi
 Le postGres rien de particulier.
 Pour le front je vous ai deja prepare un exemple de code single-page histoire que vous ne partiez dans le noir complet, si j'ai un peu de temps ce we, j'essaie de rajouter le signup sign in et la protection des routes selon l'etat de connexion du user mais je promets pas de miracles ^^
 Si vous avez des questions, hesitez pas !
+
+# KNOWN BUGS
+
+- L'historique des pages visitees ne fonctionne que pour une seule page en arriere ou en avant ;)
+
 # ft_transcendence
 Projet ft_transcendence 42 Perpignan
 
