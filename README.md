@@ -12,7 +12,7 @@ Si vous avez des questions, hesitez pas !
 
 # KNOWN BUGS
 
-- L'historique des pages visitees ne fonctionne que pour une seule page en arriere ou en avant ;)
+- ~~L'historique des pages visitees ne fonctionne que pour une seule page en arriere ou en avant ;)~~
 
 # ft_transcendence
 Projet ft_transcendence 42 Perpignan

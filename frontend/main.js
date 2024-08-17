@@ -1,5 +1,8 @@
 (function() {
-    function showTab(tabId) {
+    const tabHistory = [];
+    let currentTabIndex = -1;
+
+    function showTab(tabId, pushState = true) {
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.tab-content');
         tabContents.forEach(tab => tab.classList.remove('active'));
@@ -18,8 +21,21 @@
         else if (tabId === 'game') initGame();
         else if (tabId === 'user') initUser();
 
-        // Update the URL without reloading the page
-        history.pushState(null, '', `#${tabId}`);
+        if (pushState) {
+            // Update the URL and add to history
+            history.pushState({ tabId: tabId }, '', `#${tabId}`);
+            tabHistory.push(tabId);
+            currentTabIndex = tabHistory.length - 1;
+        }
+    }
+
+    function handlePopState(event) {
+        if (event.state && event.state.tabId) {
+            showTab(event.state.tabId, false);
+        } else {
+            // Default to home if no state is available
+            showTab('home', false);
+        }
     }
 
     function initApp() {
@@ -33,10 +49,7 @@
         });
 
         // Handle browser back/forward buttons
-        window.addEventListener('popstate', () => {
-            const tabId = location.hash.replace('#', '') || 'home';
-            showTab(tabId);
-        });
+        window.addEventListener('popstate', handlePopState);
 
         // Initial load
         const initialTab = location.hash.replace('#', '') || 'home';
