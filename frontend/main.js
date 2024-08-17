@@ -3,6 +3,11 @@
     let currentTabIndex = -1;
 
     function showTab(tabId, pushState = true) {
+        if (!Auth.isAuthenticated()) {
+            Auth.showAuthModal();
+            return;
+        }
+
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.tab-content');
         tabContents.forEach(tab => tab.classList.remove('active'));
@@ -39,6 +44,13 @@
     }
 
     function initApp() {
+        // Initialize authentication
+        Auth.init();
+
+        if (!Auth.isAuthenticated()) {
+            Auth.showAuthModal();
+        }
+
         const navButtons = document.querySelectorAll('.nav-link');
         navButtons.forEach(button => {
             button.addEventListener('click', (e) => {
