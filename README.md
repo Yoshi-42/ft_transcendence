@@ -10,6 +10,10 @@ Le postGres rien de particulier.
 Pour le front je vous ai deja prepare un exemple de code single-page histoire que vous ne partiez dans le noir complet, si j'ai un peu de temps ce we, j'essaie de rajouter le signup sign in et la protection des routes selon l'etat de connexion du user mais je promets pas de miracles ^^
 Si vous avez des questions, hesitez pas !
 
+# INSTALL OR RUNNING PROBLEMS
+
+La premiere chose a faire c'est de virer tout ce que docker a pu creer precedemment, notamment le volume de la db qui, s'il est persiste, peut poser de nombreux problemes, une fois que tout sera en place, persister la db ne posera plus de pb mais en dev ca peut vite devenir un casse-tete...
+
 # KNOWN BUGS
 
 - ~~L'historique des pages visitees ne fonctionne que pour une seule page en arriere ou en avant ;)~~
