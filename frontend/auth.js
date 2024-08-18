@@ -1,12 +1,12 @@
-// auth.js
-
 const Auth = (function() {
     let authToken = null;
+    let refreshToken = null;
     let currentUser = null;
     let authModal = null;
 
     function init() {
         authToken = localStorage.getItem('authToken');
+        refreshToken = localStorage.getItem('refreshToken');
         currentUser = localStorage.getItem('currentUser');
         updateWelcomeMessage();
         
@@ -44,7 +44,7 @@ const Auth = (function() {
 
     async function signIn(username, password) {
         try {
-            const response = await fetch('http://your-django-backend/api/signin/', {
+            const response = await fetch('http://localhost:8000/api/signin/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,9 +54,11 @@ const Auth = (function() {
 
             if (response.ok) {
                 const data = await response.json();
-                authToken = data.token;
+                authToken = data.access;
+                refreshToken = data.refresh;
                 currentUser = username;
                 localStorage.setItem('authToken', authToken);
+                localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('currentUser', currentUser);
                 hideAuthModal();
                 updateWelcomeMessage();
@@ -72,7 +74,7 @@ const Auth = (function() {
 
     async function signUp(username, email, password) {
         try {
-            const response = await fetch('http://your-django-backend/api/signup/', {
+            const response = await fetch('http://localhost:8000/api/signup/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -81,6 +83,15 @@ const Auth = (function() {
             });
 
             if (response.ok) {
+                const data = await response.json();
+                authToken = data.access;
+                refreshToken = data.refresh;
+                currentUser = username;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('refreshToken', refreshToken);
+                localStorage.setItem('currentUser', currentUser);
+                hideAuthModal();
+                updateWelcomeMessage();
                 return true;
             } else {
                 throw new Error('Error creating account');
@@ -93,8 +104,10 @@ const Auth = (function() {
 
     function signOut() {
         authToken = null;
+        refreshToken = null;
         currentUser = null;
         localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('currentUser');
         updateWelcomeMessage();
         showAuthModal();
@@ -134,8 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('signupPassword').value;
         try {
             await Auth.signUp(username, email, password);
-            alert('Account created successfully. Please sign in.');
-            document.getElementById('signin-tab').click();
+            window.showTab('home');
         } catch (error) {
             alert('Error creating account. Please try again.');
         }
