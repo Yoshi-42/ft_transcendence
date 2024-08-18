@@ -29,6 +29,12 @@ function createGame() {
     let animationFrameId = null;
     let isGameOver = false;
 
+    // AI variables
+    let aiReactionDelay = 0;
+    let aiAccuracy = 0.9;
+    let aiPredictionError = 0;
+    let aiMovementSpeed = 4;
+
     // Game functions
     function drawRect(x, y, w, h, color) {
         ctx.fillStyle = color;
@@ -57,7 +63,7 @@ function createGame() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
         ball.dx = initialBallSpeed * (Math.random() > 0.5 ? 1 : -1);
-        ball.dy = 0;
+        ball.dy = initialBallSpeed * (Math.random() * 2 - 1); // Random vertical direction
     }
 
     function updateGame() {
@@ -76,11 +82,11 @@ function createGame() {
         if (ball.x - ballSize < paddleWidth && collision(ball, player)) {
             ball.dx = Math.abs(ball.dx);
             let collidePoint = (ball.y - (player.y + paddleHeight / 2)) / (paddleHeight / 2);
-            ball.dy = initialBallSpeed * collidePoint;
+            ball.dy = initialBallSpeed * 1.5 * collidePoint;
         } else if (ball.x + ballSize > canvas.width - paddleWidth && collision(ball, ai)) {
             ball.dx = -Math.abs(ball.dx);
             let collidePoint = (ball.y - (ai.y + paddleHeight / 2)) / (paddleHeight / 2);
-            ball.dy = initialBallSpeed * collidePoint;
+            ball.dy = initialBallSpeed * 1.5 * collidePoint;
         }
 
         // AI paddle movement
@@ -104,6 +110,15 @@ function createGame() {
                 resetBall();
                 isGameOver = false;
             }, 100);
+        }
+
+        // Difficulty adjustment
+        if (ai.score > player.score + 2) {
+            aiAccuracy = Math.max(0.7, aiAccuracy - 0.05);
+            aiMovementSpeed = Math.max(2, aiMovementSpeed - 0.5);
+        } else if (player.score > ai.score + 2) {
+            aiAccuracy = Math.min(0.95, aiAccuracy + 0.05);
+            aiMovementSpeed = Math.min(6, aiMovementSpeed + 0.5);
         }
     }
 
@@ -139,16 +154,33 @@ function createGame() {
     function aiMove() {
         const currentTime = Date.now();
         if (currentTime - ai.lastMoveTime >= 1000) { // Make decision every second
-            ai.targetY = ball.y - paddleHeight / 2;
+            // Introduce some randomness to the AI's reaction time
+            aiReactionDelay = Math.random() * 200; // 0-200ms delay
+
+            // Predict ball position with some error
+            aiPredictionError = (Math.random() - 0.5) * canvas.height * 0.1; // ±5% of canvas height
+
+            // Calculate target Y position with prediction error
+            let timeToReach = (canvas.width - paddleWidth - ball.x) / ball.dx;
+            let predictedY = ball.y + (ball.dy * timeToReach) + aiPredictionError;
+            ai.targetY = predictedY - paddleHeight / 2;
+
+            // Apply accuracy factor
+            ai.targetY = ai.y + (ai.targetY - ai.y) * aiAccuracy;
+
+            // Ensure AI paddle stays within the canvas
             ai.targetY = Math.max(0, Math.min(canvas.height - paddleHeight, ai.targetY));
+
             ai.lastMoveTime = currentTime;
         }
         
-        // Move towards the target position
-        if (ai.y < ai.targetY) {
-            ai.y += 2;
-        } else if (ai.y > ai.targetY) {
-            ai.y -= 2;
+        // Move towards the target position with a delay
+        if (currentTime - ai.lastMoveTime >= aiReactionDelay) {
+            if (Math.abs(ai.y - ai.targetY) > aiMovementSpeed) {
+                ai.y += ai.y < ai.targetY ? aiMovementSpeed : -aiMovementSpeed;
+            } else {
+                ai.y = ai.targetY; // Snap to target if very close
+            }
         }
         
         // Ensure AI paddle stays within the canvas
