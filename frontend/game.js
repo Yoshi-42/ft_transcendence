@@ -39,7 +39,6 @@ function createGame(options = {}) {
     let player = { y: canvas.height / 2 - paddleHeight / 2, score: 0 };
     let ai = { y: canvas.height / 2 - paddleHeight / 2, score: 0, lastMoveTime: 0, targetY: canvas.height / 2 - paddleHeight / 2 };
     let ball = { x: canvas.width / 2, y: canvas.height / 2, dx: initialBallSpeed, dy: 0 };
-    let isGamePaused = true;
     let animationFrameId = null;
     let isGameOver = false;
 
@@ -81,7 +80,7 @@ function createGame(options = {}) {
     }
 
     function updateGame() {
-        if (isGamePaused || isGameOver) return;
+        if (isGameOver) return;
 
         // Move the ball
         ball.x += ball.dx;
@@ -123,7 +122,6 @@ function createGame(options = {}) {
                 player.score = ai.score = 0;
                 resetBall();
                 isGameOver = false;
-                isGamePaused = true;
                 drawGame();
             }, 100);
         }
@@ -152,13 +150,6 @@ function createGame(options = {}) {
         // Draw scores
         drawText(player.score, canvas.width / 4, 50, '#fff');
         drawText(ai.score, 3 * canvas.width / 4, 50, '#fff');
-
-        // Draw pause or start message
-        if (isGamePaused) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            drawText(isGameInitialized ? "PAUSED" : "Press Start to Play", canvas.width / 2 - 150, canvas.height / 2, '#fff');
-        }
     }
 
     function gameLoop() {
@@ -206,7 +197,7 @@ function createGame(options = {}) {
 
     // Event listener for player paddle
     function handleMouseMove(e) {
-        if (!isGamePaused && !isGameOver) {
+        if (!isGameOver) {
             let rect = canvas.getBoundingClientRect();
             player.y = e.clientY - rect.top - paddleHeight / 2;
             // Ensure player paddle stays within the canvas
@@ -219,14 +210,13 @@ function createGame(options = {}) {
     // Page Visibility API
     function handleVisibilityChange() {
         if (document.hidden) {
-            isGamePaused = true;
             cancelAnimationFrame(animationFrameId);
         } else {
-            if (isGameInitialized && !isGamePaused) {
+            if (isGameInitialized) {
                 animationFrameId = requestAnimationFrame(gameLoop);
             }
         }
-        drawGame(); // Redraw the game to show/hide pause message
+        drawGame();
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -244,15 +234,11 @@ function createGame(options = {}) {
     document.getElementById('startGameBtn').addEventListener('click', () => {
         if (!isGameInitialized) {
             isGameInitialized = true;
-            isGamePaused = false;
             document.getElementById('startGameBtn').style.display = 'none';
             animationFrameId = requestAnimationFrame(gameLoop);
             if (typeof onGameStart === 'function') {
                 onGameStart();
             }
-        } else if (isGamePaused) {
-            isGamePaused = false;
-            animationFrameId = requestAnimationFrame(gameLoop);
         }
     });
 
