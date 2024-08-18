@@ -17,7 +17,7 @@ La premiere chose a faire c'est de virer tout ce que docker a pu creer precedemm
 # KNOWN BUGS
 
 - ~~L'historique des pages visitees ne fonctionne que pour une seule page en arriere ou en avant ;)~~
-
+- gestion de l'update des parties perdues quand le user change de tab pendant une partie (j'ai la flemme de chercher encore ^^)
 # ft_transcendence
 Projet ft_transcendence 42 Perpignan
 
