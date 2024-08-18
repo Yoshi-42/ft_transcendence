@@ -22,31 +22,59 @@ function initUser() {
                     </div>
                     <button type="submit" class="btn btn-primary">Update Profile</button>
                 </form>
+                <div id="updateMessage" class="mt-3"></div>
             </div>
             <div class="col-md-6">
                 <h3>Stats</h3>
                 <ul class="list-group">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Games Played
-                        <span class="badge bg-primary rounded-pill">14</span>
+                        <span class="badge bg-primary rounded-pill" id="gamesPlayed">0</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Wins
-                        <span class="badge bg-success rounded-pill">8</span>
+                        <span class="badge bg-success rounded-pill" id="wins">0</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         Losses
-                        <span class="badge bg-danger rounded-pill">6</span>
+                        <span class="badge bg-danger rounded-pill" id="losses">0</span>
                     </li>
                 </ul>
             </div>
         </div>
     `;
 
+    loadUserInfo();
     document.getElementById('userForm').addEventListener('submit', updateProfile);
 }
 
-function updateProfile(event) {
+async function loadUserInfo() {
+    try {
+        const response = await fetch('http://localhost:8000/api/user/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            const userData = await response.json();
+            document.getElementById('username').value = userData.username;
+            document.getElementById('email').value = userData.email;
+            document.getElementById('gamesPlayed').value = userData.games_played || 0;
+            document.getElementById('wins').value = userData.wins || 0;
+            document.getElementById('losses').value = userData.losses || 0;
+        } else {
+            throw new Error('Failed to load user data');
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        showUpdateMessage('Failed to load user data. Please try again.', 'danger');
+    }
+}
+
+async function updateProfile(event) {
     event.preventDefault();
     const form = event.target;
     if (!form.checkValidity()) {
@@ -57,16 +85,35 @@ function updateProfile(event) {
 
     const username = document.getElementById('username').value;
     const email = document.getElementById('email').value;
-    console.log(`Updating profile... Username: ${username}, Email: ${email}`);
-    // Here you would typically send this data to your server
 
-    // Show a success message
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-success mt-3';
-    alert.role = 'alert';
-    alert.textContent = 'Profile updated successfully!';
-    form.appendChild(alert);
+    try {
+        const response = await fetch('http://localhost:8000/api/user/update/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, email }),
+        });
 
-    // Remove the alert after 3 seconds
-    setTimeout(() => alert.remove(), 3000);
+        if (response.ok) {
+            showUpdateMessage('Profile updated successfully!', 'success');
+        } else {
+            throw new Error('Failed to update profile');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showUpdateMessage('Failed to update profile. Please try again.', 'danger');
+    }
 }
+
+function showUpdateMessage(message, type) {
+    const messageElement = document.getElementById('updateMessage');
+    messageElement.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
+    setTimeout(() => {
+        messageElement.innerHTML = '';
+    }, 5000);
+}
+
+// Make initUser available globally
+window.initUser = initUser;
