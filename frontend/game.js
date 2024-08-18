@@ -1,8 +1,12 @@
-// Global variables for instance management
+// game.js
+
 let currentGameInstance = null;
 let isGameInitialized = false;
+let hasIncrementedLoss = false;
+let isGameActive = false;
 
-function createGame(options = {}) {
+async function createGame(options = {}) {
+    console.log("Creating new game instance");
     if (isGameInitialized) {
         console.warn("A game is already running. Please end the current game before starting a new one.");
         return null;
@@ -79,7 +83,34 @@ function createGame(options = {}) {
         ball.dy = initialBallSpeed * (Math.random() * 2 - 1); // Random vertical direction
     }
 
-    function updateGame() {
+    async function updateWinLossCount(isWin) {
+        const endpoint = isWin ? 'http://localhost:8000/api/user/increment_wins/' : 'http://localhost:8000/api/user/increment_losses/';
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update win/loss count');
+            }
+            const data = await response.json();
+            console.log(isWin ? `Wins updated: ${data.wins}` : `Losses updated: ${data.losses}`);
+        } catch (error) {
+            console.error('Error updating win/loss count:', error);
+        }
+    }
+
+    async function incrementLossCount() {
+        if (!hasIncrementedLoss) {
+            await updateWinLossCount(false);
+            hasIncrementedLoss = true;
+        }
+    }
+
+    async function updateGame() {
         if (isGameOver) return;
 
         // Move the ball
@@ -117,11 +148,17 @@ function createGame(options = {}) {
         // Check for game over
         if (player.score === 5 || ai.score === 5) {
             isGameOver = true;
+            isGameActive = false;
+            const playerWon = player.score === 5;
+            await updateWinLossCount(playerWon);
             setTimeout(() => {
-                alert(player.score === 5 ? "You win!" : "AI wins!");
+                alert(playerWon ? "You win!" : "AI wins!");
                 player.score = ai.score = 0;
                 resetBall();
                 isGameOver = false;
+                isGameInitialized = false;
+                hasIncrementedLoss = false;
+                document.getElementById('startGameBtn').style.display = 'block';
                 drawGame();
             }, 100);
         }
@@ -153,7 +190,7 @@ function createGame(options = {}) {
     }
 
     function gameLoop() {
-        if (!isGameInitialized) return;
+        if (!isGameInitialized || !isGameActive) return;
         updateGame();
         drawGame();
         animationFrameId = requestAnimationFrame(gameLoop);
@@ -197,7 +234,7 @@ function createGame(options = {}) {
 
     // Event listener for player paddle
     function handleMouseMove(e) {
-        if (!isGameOver) {
+        if (!isGameOver && isGameActive) {
             let rect = canvas.getBoundingClientRect();
             player.y = e.clientY - rect.top - paddleHeight / 2;
             // Ensure player paddle stays within the canvas
@@ -208,42 +245,81 @@ function createGame(options = {}) {
     canvas.addEventListener('mousemove', handleMouseMove);
 
     // Page Visibility API
-    function handleVisibilityChange() {
-        if (document.hidden) {
+    async function handleVisibilityChange() {
+        console.log('Visibility changed. Hidden:', document.hidden);
+        console.log('Game state - Initialized:', isGameInitialized, 'Active:', isGameActive, 'Over:', isGameOver);
+
+        if (document.hidden && isGameInitialized && isGameActive && !isGameOver && !hasIncrementedLoss) {
+            console.log('Player left the game. Counting as a loss.');
+            await incrementLossCount();
+            isGameOver = true;
+            isGameActive = false;
             cancelAnimationFrame(animationFrameId);
-        } else {
-            if (isGameInitialized) {
-                animationFrameId = requestAnimationFrame(gameLoop);
-            }
+            alert("You left the game. This counts as a loss.");
+            document.getElementById('startGameBtn').style.display = 'block';
+        } else if (!document.hidden && isGameInitialized && isGameActive && !isGameOver) {
+            console.log('Tab is visible again. Resuming game.');
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
         drawGame();
     }
 
+    // Ensure we remove the previous event listener before adding a new one
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Cleanup function
-    function cleanup() {
-        isGameInitialized = false;
-        cancelAnimationFrame(animationFrameId);
-        canvas.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-        gameTab.innerHTML = ''; // Clear the game area
-    }
-
     // Start game button
-    document.getElementById('startGameBtn').addEventListener('click', () => {
-        if (!isGameInitialized) {
-            isGameInitialized = true;
-            document.getElementById('startGameBtn').style.display = 'none';
-            animationFrameId = requestAnimationFrame(gameLoop);
-            if (typeof onGameStart === 'function') {
-                onGameStart();
+    document.getElementById('startGameBtn').addEventListener('click', async () => {
+        if (!isGameActive) {
+            console.log('Start game button clicked');
+            try {
+                console.log('Sending request to increment games_played');
+                const response = await fetch('http://localhost:8000/api/user/increment_games_played/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to increment games played');
+                }
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                isGameInitialized = true;
+                isGameActive = true;
+                hasIncrementedLoss = false;
+                isGameOver = false;
+                document.getElementById('startGameBtn').style.display = 'none';
+                animationFrameId = requestAnimationFrame(gameLoop);
+                if (typeof onGameStart === 'function') {
+                    onGameStart();
+                }
+            } catch (error) {
+                console.error('Error starting game:', error);
+                alert('Failed to start the game. Please try again.');
             }
+        } else {
+            console.log('Game already active, ignoring click');
         }
     });
 
     // Initial draw
     drawGame();
+
+    // Cleanup function
+    function cleanup() {
+        console.log("Cleanup function called");
+        isGameInitialized = false;
+        isGameActive = false;
+        hasIncrementedLoss = false;
+        isGameOver = false;
+        cancelAnimationFrame(animationFrameId);
+        canvas.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        gameTab.innerHTML = ''; // Clear the game area
+    }
 
     // Return the cleanup function
     return cleanup;
@@ -251,11 +327,14 @@ function createGame(options = {}) {
 
 // Make sure initGame is available globally
 window.initGame = function(options = {}) {
+    console.log("Initializing new game");
     // Clean up any existing game before starting a new one
     if (currentGameInstance) {
+        console.log("Cleaning up existing game");
         currentGameInstance();
         currentGameInstance = null;
     }
     // Start a new game and store the cleanup function
     currentGameInstance = createGame(options);
+    console.log("New game initialized, cleanup function stored");
 };

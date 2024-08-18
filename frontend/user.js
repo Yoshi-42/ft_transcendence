@@ -60,11 +60,12 @@ async function loadUserInfo() {
 
         if (response.ok) {
             const userData = await response.json();
+            console.log('User data received:', userData);  // Log the received data
             document.getElementById('username').value = userData.username;
             document.getElementById('email').value = userData.email;
-            document.getElementById('gamesPlayed').value = userData.games_played || 0;
-            document.getElementById('wins').value = userData.wins || 0;
-            document.getElementById('losses').value = userData.losses || 0;
+            document.getElementById('gamesPlayed').textContent = userData.games_played || '0';
+            document.getElementById('wins').textContent = userData.wins || '0';
+            document.getElementById('losses').textContent = userData.losses || '0';
         } else {
             throw new Error('Failed to load user data');
         }
@@ -98,6 +99,7 @@ async function updateProfile(event) {
 
         if (response.ok) {
             showUpdateMessage('Profile updated successfully!', 'success');
+            loadUserInfo();  // Reload user info after successful update
         } else {
             throw new Error('Failed to update profile');
         }

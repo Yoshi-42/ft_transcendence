@@ -11,9 +11,17 @@
         }
         // Clean up the game if we're navigating away from the game tab
         if (tabId !== 'game' && currentGameInstance) {
-            currentGameInstance();
+            if (typeof currentGameInstance === 'function') {
+                currentGameInstance();
+            } else if (currentGameInstance instanceof Promise) {
+                currentGameInstance.then(cleanup => {
+                    if (typeof cleanup === 'function') {
+                        cleanup();
+                    }
+                }).catch(error => console.error("Error cleaning up game:", error));
+            }
             currentGameInstance = null;
-            console.log("Current instance of the game has been cleanedUp")
+            console.log("Current instance of the game has been cleaned up");
         }
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.tab-content');
