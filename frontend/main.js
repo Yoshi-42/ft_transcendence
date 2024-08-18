@@ -9,7 +9,12 @@
             Auth.showAuthModal();
             return;
         }
-
+        // Clean up the game if we're navigating away from the game tab
+        if (tabId !== 'game' && currentGameInstance) {
+            currentGameInstance();
+            currentGameInstance = null;
+            console.log("Current instance of the game has been cleanedUp")
+        }
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.tab-content');
         tabContents.forEach(tab => tab.style.display = 'none');

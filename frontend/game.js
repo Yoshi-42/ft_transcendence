@@ -1,12 +1,26 @@
-// Global variable to track the game instance
+// Global variables for instance management
 let currentGameInstance = null;
+let isGameInitialized = false;
 
-function createGame() {
+function createGame(options = {}) {
+    if (isGameInitialized) {
+        console.warn("A game is already running. Please end the current game before starting a new one.");
+        return null;
+    }
+
     const gameTab = document.getElementById('game');
+    if (!gameTab) {
+        console.error("Game container not found. Make sure there's an element with id 'game' in your HTML.");
+        return null;
+    }
+
+    const { onGameStart = null } = options;
+
     gameTab.innerHTML = `
         <h1 class="display-4">Pong Game</h1>
         <p class="lead">Challenge yourself or play against the AI in our classic Pong game.</p>
         <div id="gameArea" class="mt-4"></div>
+        <button id="startGameBtn" class="btn btn-success mt-3">Start Game</button>
     `;
 
     // Create canvas
@@ -25,7 +39,7 @@ function createGame() {
     let player = { y: canvas.height / 2 - paddleHeight / 2, score: 0 };
     let ai = { y: canvas.height / 2 - paddleHeight / 2, score: 0, lastMoveTime: 0, targetY: canvas.height / 2 - paddleHeight / 2 };
     let ball = { x: canvas.width / 2, y: canvas.height / 2, dx: initialBallSpeed, dy: 0 };
-    let isGamePaused = false;
+    let isGamePaused = true;
     let animationFrameId = null;
     let isGameOver = false;
 
@@ -109,6 +123,8 @@ function createGame() {
                 player.score = ai.score = 0;
                 resetBall();
                 isGameOver = false;
+                isGamePaused = true;
+                drawGame();
             }, 100);
         }
 
@@ -137,15 +153,16 @@ function createGame() {
         drawText(player.score, canvas.width / 4, 50, '#fff');
         drawText(ai.score, 3 * canvas.width / 4, 50, '#fff');
 
-        // Draw pause message if game is paused
+        // Draw pause or start message
         if (isGamePaused) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            drawText("PAUSED", canvas.width / 2 - 70, canvas.height / 2, '#fff');
+            drawText(isGameInitialized ? "PAUSED" : "Press Start to Play", canvas.width / 2 - 150, canvas.height / 2, '#fff');
         }
     }
 
     function gameLoop() {
+        if (!isGameInitialized) return;
         updateGame();
         drawGame();
         animationFrameId = requestAnimationFrame(gameLoop);
@@ -205,8 +222,9 @@ function createGame() {
             isGamePaused = true;
             cancelAnimationFrame(animationFrameId);
         } else {
-            isGamePaused = false;
-            animationFrameId = requestAnimationFrame(gameLoop);
+            if (isGameInitialized && !isGamePaused) {
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
         }
         drawGame(); // Redraw the game to show/hide pause message
     }
@@ -215,26 +233,43 @@ function createGame() {
 
     // Cleanup function
     function cleanup() {
+        isGameInitialized = false;
         cancelAnimationFrame(animationFrameId);
         canvas.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         gameTab.innerHTML = ''; // Clear the game area
     }
 
-    // Start the game
-    animationFrameId = requestAnimationFrame(gameLoop);
+    // Start game button
+    document.getElementById('startGameBtn').addEventListener('click', () => {
+        if (!isGameInitialized) {
+            isGameInitialized = true;
+            isGamePaused = false;
+            document.getElementById('startGameBtn').style.display = 'none';
+            animationFrameId = requestAnimationFrame(gameLoop);
+            if (typeof onGameStart === 'function') {
+                onGameStart();
+            }
+        } else if (isGamePaused) {
+            isGamePaused = false;
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+    });
+
+    // Initial draw
+    drawGame();
 
     // Return the cleanup function
     return cleanup;
 }
 
 // Make sure initGame is available globally
-window.initGame = function() {
+window.initGame = function(options = {}) {
     // Clean up any existing game before starting a new one
     if (currentGameInstance) {
         currentGameInstance();
         currentGameInstance = null;
     }
     // Start a new game and store the cleanup function
-    currentGameInstance = createGame();
+    currentGameInstance = createGame(options);
 };
