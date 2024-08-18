@@ -1,3 +1,5 @@
+// main.js
+
 (function() {
     const tabHistory = [];
     let currentTabIndex = -1;
@@ -10,21 +12,26 @@
 
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.tab-content');
-        tabContents.forEach(tab => tab.classList.remove('active'));
+        tabContents.forEach(tab => tab.style.display = 'none');
 
         // Show the selected tab content
         const selectedTab = document.getElementById(tabId);
-        selectedTab.classList.add('active');
+        if (selectedTab) {
+            selectedTab.style.display = 'block';
+        }
 
         // Update active state in navigation
         const navButtons = document.querySelectorAll('.nav-link');
         navButtons.forEach(button => button.classList.remove('active'));
-        document.getElementById(`${tabId}Btn`).classList.add('active');
+        const activeButton = document.getElementById(`${tabId}Btn`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
 
         // Call the init function for the selected tab
-        if (tabId === 'home') initHome();
-        else if (tabId === 'game') initGame();
-        else if (tabId === 'user') initUser();
+        if (tabId === 'home' && typeof initHome === 'function') initHome();
+        else if (tabId === 'game' && typeof initGame === 'function') initGame();
+        else if (tabId === 'user' && typeof initUser === 'function') initUser();
 
         if (pushState) {
             // Update the URL and add to history
@@ -49,6 +56,10 @@
 
         if (!Auth.isAuthenticated()) {
             Auth.showAuthModal();
+        } else {
+            // Show initial tab
+            const initialTab = location.hash.replace('#', '') || 'home';
+            showTab(initialTab, false);
         }
 
         const navButtons = document.querySelectorAll('.nav-link');
@@ -63,9 +74,11 @@
         // Handle browser back/forward buttons
         window.addEventListener('popstate', handlePopState);
 
-        // Initial load
-        const initialTab = location.hash.replace('#', '') || 'home';
-        showTab(initialTab);
+        // Handle sign out
+        document.getElementById('signOutBtn').addEventListener('click', () => {
+            Auth.signOut();
+            // The redirect is now handled in the Auth.signOut() function
+        });
     }
 
     // Make showTab available globally

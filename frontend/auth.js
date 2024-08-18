@@ -1,3 +1,5 @@
+// auth.js
+
 const Auth = (function() {
     let authToken = null;
     let refreshToken = null;
@@ -8,13 +10,19 @@ const Auth = (function() {
         authToken = localStorage.getItem('authToken');
         refreshToken = localStorage.getItem('refreshToken');
         currentUser = localStorage.getItem('currentUser');
-        updateWelcomeMessage();
+        updateUI();
         
-        // Initialize the modal
-        authModal = new bootstrap.Modal(document.getElementById('authModal'), {
-            backdrop: 'static',
-            keyboard: false
-        });
+        initModal();
+    }
+
+    function initModal() {
+        const modalElement = document.getElementById('authModal');
+        if (modalElement) {
+            authModal = new bootstrap.Modal(modalElement, {
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
     }
 
     function isAuthenticated() {
@@ -22,23 +30,29 @@ const Auth = (function() {
     }
 
     function showAuthModal() {
+        if (!authModal) {
+            initModal();
+        }
         if (authModal) {
             authModal.show();
         }
     }
 
     function hideAuthModal() {
-        if (authModal && isAuthenticated()) {
+        if (authModal) {
             authModal.hide();
         }
     }
 
-    function updateWelcomeMessage() {
+    function updateUI() {
         const welcomeMessage = document.getElementById('welcomeMessage');
+        const signOutBtn = document.getElementById('signOutBtn');
         if (currentUser) {
             welcomeMessage.textContent = `Welcome, ${currentUser}!`;
+            signOutBtn.style.display = 'inline-block';
         } else {
             welcomeMessage.textContent = '';
+            signOutBtn.style.display = 'none';
         }
     }
 
@@ -61,7 +75,7 @@ const Auth = (function() {
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('currentUser', currentUser);
                 hideAuthModal();
-                updateWelcomeMessage();
+                updateUI();
                 return true;
             } else {
                 throw new Error('Invalid credentials');
@@ -91,7 +105,7 @@ const Auth = (function() {
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('currentUser', currentUser);
                 hideAuthModal();
-                updateWelcomeMessage();
+                updateUI();
                 return true;
             } else {
                 throw new Error('Error creating account');
@@ -109,8 +123,14 @@ const Auth = (function() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('currentUser');
-        updateWelcomeMessage();
-        showAuthModal();
+        updateUI();
+        
+        // Redirect to web root
+        redirectToRoot();
+    }
+
+    function redirectToRoot() {
+        window.location.href = '/';
     }
 
     return {
@@ -120,7 +140,8 @@ const Auth = (function() {
         hideAuthModal,
         signIn,
         signUp,
-        signOut
+        signOut,
+        redirectToRoot
     };
 })();
 
