@@ -74,6 +74,8 @@ const Auth = (function() {
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('currentUser', currentUser);
+                console.log('Access token:', authToken);  // Log the access token
+                console.log('Refresh token:', refreshToken);  // Log the refresh token
                 hideAuthModal();
                 updateUI();
                 return true;
@@ -104,6 +106,8 @@ const Auth = (function() {
                 localStorage.setItem('authToken', authToken);
                 localStorage.setItem('refreshToken', refreshToken);
                 localStorage.setItem('currentUser', currentUser);
+                console.log('Access token:', authToken);  // Log the access token
+                console.log('Refresh token:', refreshToken);  // Log the refresh token
                 hideAuthModal();
                 updateUI();
                 return true;
