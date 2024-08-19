@@ -1,6 +1,9 @@
 function initHome() {
     const homeTab = document.getElementById('home');
     homeTab.innerHTML = `
+         <script> 
+
+   		</script>        
         <h1 class="display-4">Welcome to Transcendence</h1>
         <p class="lead">This is the home page of our exciting Pong game platform.</p>
         <hr class="my-4">
@@ -19,8 +22,21 @@ function initHome() {
             <div class="col-md-4">
                 <h3>Tournament</h3>
                 <p>Join our weekly tournaments for exciting prizes!</p>
-                <button class="btn btn-info">Tournament Info</button>
+                <button id="tournament" class="btn btn-info">Tournament Info</button>
             </div>
         </div>
+       
     `;
+  
+  	document.getElementById('tournament').addEventListener('click', async () => {
+        // Appel de la fonction `initTournament` pour initialiser la page du tournoi
+        if (typeof initTournament === 'function') {
+            initTournament();
+        } else {
+            console.error("initTournament function is not defined");
+        }
+    });
+   	
 }
+
+
