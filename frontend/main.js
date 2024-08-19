@@ -45,7 +45,7 @@
         if (tabId === 'home' && typeof initHome === 'function') initHome();
         else if (tabId === 'game' && typeof initGame === 'function') initGame();
         else if (tabId === 'user' && typeof initUser === 'function') initUser();
-
+		
         if (pushState) {
             // Update the URL and add to history
             history.pushState({ tabId: tabId }, '', `#${tabId}`);
