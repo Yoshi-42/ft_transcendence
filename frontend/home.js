@@ -29,9 +29,8 @@ function initHome() {
     `;
   
   	document.getElementById('tournament').addEventListener('click', async () => {
-        // Appel de la fonction `initTournament` pour initialiser la page du tournoi
         if (typeof initTournament === 'function') {
-            initTournament();
+        	showTab('tournament');
         } else {
             console.error("initTournament function is not defined");
         }
