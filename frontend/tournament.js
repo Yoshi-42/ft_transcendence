@@ -20,7 +20,7 @@ let TisGameActive = false;
 function initTournament() {
     const tournamentTab = document.getElementById('tournament');
     tournamentTab.innerHTML = `
-        <h1 class="display-4">Tournament Page 33</h1>
+        <h1 class="display-4">Tournament Page 38</h1>
         <p class="lead">Join our exciting tournaments and win amazing prizes!</p>
         <hr class="my-4">
         <p>Check out the upcoming tournaments or view the results of past ones.</p>
@@ -91,7 +91,7 @@ function shuffleArray(array) {
 }
 
 
-function playRound(players) {
+function playRound(Tplayers) {
     console.log("New Round Starting!");
     const winners = [];
     
@@ -99,7 +99,6 @@ function playRound(players) {
         console.log(`Starting match between ${player1} and ${player2}`);
 
         // Start the game and wait for the winner to be determined
-        console.log("Vermillon");
         const winner = await startGameWithPlayers(player1, player2);
         winners.push(winner);
         console.log(`${player1} vs ${player2} - Winner: ${winner}`);
@@ -108,23 +107,29 @@ function playRound(players) {
     
     
     const handleRound = async () => {
-        while (players.length > 1) {
-            const player1 = players.pop();
-            const player2 = players.pop();
+        while (Tplayers.length > 1) {
+            const player1 = Tplayers.pop();
+            const player2 = Tplayers.pop();
 
             await playMatch(player1, player2);
         }
 
 
     // Si le nombre de joueurs est impair, le dernier joueur est qualifié d'office
-    if (players.length === 1) {
-        winners.push(players.pop());
+    if (Tplayers.length === 1) {
+        winners.push(Tplayers.pop());
     }
 
     if (winners.length > 1) {
         playRound(winners);
     } else {
+    	//ici c'est le vainqueur et la fin du tournois
         console.log(`Tournament Champion: ${winners[0]}`);
+        
+        alert(`The great winner is : ${winners[0]} `);
+        
+        initTournament();
+        return;
     }
     };
     
@@ -318,7 +323,7 @@ console.log("Perle " + TisGameInitialized);
 console.log("Obscidienne Is Function : " +  onGameEnd + " ");
             
             if (typeof onGameEnd === 'function') {
-     		   onGameEnd(player.score === 5 ? player1 : player2); 
+     		   onGameEnd(playerWon ? player1 : player2); 
     		} else {
                 console.error('onGameEnd is not a function at game end.');
             }
