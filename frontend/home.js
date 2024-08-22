@@ -4,7 +4,7 @@ function initHome() {
          <script> 
 
    		</script>        
-        <h1 class="display-4">Welcome to Transcendence</h1>
+        <h1 class="display-4">Welcomes to Transcendence</h1>
         <p class="lead">This is the home page of our exciting Pong game platform.</p>
         <hr class="my-4">
         <p>Get ready for an unparalleled Pong experience! Challenge your friends, improve your skills, and climb the leaderboards.</p>
@@ -35,7 +35,6 @@ function initHome() {
             console.error("initTournament function is not defined");
         }
     });
-   	
 }
 
 
