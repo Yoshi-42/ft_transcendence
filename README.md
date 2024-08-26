@@ -31,7 +31,8 @@ La premiere chose a faire c'est de virer tout ce que docker a pu creer precedemm
 -------------------------------------------------------------
 # ft_transcendence
 Projet ft_transcendence 42 Perpignan
-(Arthur sent le poisson)
+̶(̶A̶r̶t̶h̶u̶r̶ ̶s̶e̶n̶t̶ ̶l̶e̶ ̶p̶o̶i̶s̶s̶o̶n̶)
+(Imad sent le poisson)
 ft_transcendence Surprise.
 IV.1 Vue d’ensemble
 • Web
