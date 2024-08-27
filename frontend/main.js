@@ -47,6 +47,8 @@
         else if (tabId === 'game' && typeof initGame === 'function') initGame();
         else if (tabId === 'user' && typeof initUser === 'function') initUser();
 		else if (tabId === 'tournament' && typeof initTournament === 'function') initTournament();
+        else if (tabId === 'dist_play' && typeof createGameD === 'function' ) createGameD();
+        
         
         if (pushState) {
             // Update the URL and add to history

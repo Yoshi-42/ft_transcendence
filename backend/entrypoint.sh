@@ -31,6 +31,10 @@ cp core-serializers.py /app/core/serializers.py
 cp core-views.py /app/core/views.py
 cp core-urls.py /app/core/urls.py
 cp core-admin.py /app/core/admin.py
+cp core-consumers.py /app/core/consumers.py  # New file for Channels
+cp core-routing.py /app/core/routing.py  # New file for Channels
+cp core-game_views.py /app/core/game_views.py
+
 
 # Run migrations
 python manage.py makemigrations
@@ -44,5 +48,8 @@ python manage.py makemigrations
 python manage.py migrate
 # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password') if not User.objects.filter(username='admin').exists() else None" | python manage.py shell
 echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'password') if not User.objects.filter(username='admin').exists() else print('Superuser already exists.')" | python manage.py shell
+
+
 # Start server
-python manage.py runserver 0.0.0.0:8000
+#python manage.py runserver 0.0.0.0:8000
+uvicorn transcendence.asgi:application --host 0.0.0.0 --port 8000
