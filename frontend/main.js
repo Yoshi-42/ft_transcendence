@@ -30,6 +30,8 @@
 
         // Show the selected tab content
         const selectedTab = document.getElementById(tabId);
+        console.log('Beryl ' + selectedTab);
+        console.log('Beryl 2 ' + tabId);
         if (selectedTab) {
             selectedTab.style.display = 'block';
         }
@@ -37,6 +39,7 @@
         // Update active state in navigation
         const navButtons = document.querySelectorAll('.nav-link');
         navButtons.forEach(button => button.classList.remove('active'));
+
         const activeButton = document.getElementById(`${tabId}Btn`);
         if (activeButton) {
             activeButton.classList.add('active');
@@ -47,7 +50,7 @@
         else if (tabId === 'game' && typeof initGame === 'function') initGame();
         else if (tabId === 'user' && typeof initUser === 'function') initUser();
 		else if (tabId === 'tournament' && typeof initTournament === 'function') initTournament();
-        else if (tabId === 'dist_play' && typeof createGameD === 'function' ) createGameD();
+        else if (tabId === 'game_online' && typeof createGameD === 'function' ) createGameD();
         
         
         if (pushState) {

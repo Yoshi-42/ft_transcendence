@@ -1,40 +1,33 @@
-// game.js
-
-let DcurrentGameInstance = null;
-let DisGameInitialized = false;
-let DhasIncrementedLoss = false;
-let DisGameActive = false;
-let Dws = null;  // WebSocket variable
-
 async function createGameD(options = {}) {
-    console.log("Creating new game instance");
-    if (DisGameInitialized) {
-        console.warn("A game is already running. Please end the current game before starting a new one.");
-        return null;
-    }
-
+   	console.log("Emeraude");
+    // Récupérer l'élément HTML où le contenu sera injecté
     const gameTab = document.getElementById('game_online');
-    if (!gameTab) {
-        console.error("Game container not found. Make sure there's an element with id 'game' in your HTML.");
-        return null;
-    }
 
-    const { onGameStart = null } = options;
-
+    // Injecter le code HTML dans `gameTab`
     gameTab.innerHTML = `
-        <h1 class="display-4">Pong Game</h1>
-        <p class="lead">Challenge yourself or play against a friend in our classic Pong game.</p>
-        <div id="gameArea" class="mt-4"></div>
-        <button id="startGameBtn" class="btn btn-success mt-3">Start Game</button>
-        <div id="gameLinkContainer" class="mt-3" style="display: none;">
-            <p>Share this link with a friend to join the game:</p>
-            <input type="text" id="gameLinkInput" readonly style="width: 100%;">
+        <div id="content">
+            <button id="generateLinkBtn">Générer le lien de connexion</button>
+            <div id="linkContainer" style="display: none;">
+                <p>Partagez ce lien avec quelqu'un sur le même réseau :</p>
+                <input type="text" id="connectionLink" readonly>
+            </div>
+            <div id="statusMessage" style="display: none; color: green;">
+                Vous êtes tous les deux connectés !
+            </div>
         </div>
     `;
 
-    async function fetchGameLink() {
+    const generateLinkBtn = document.getElementById('generateLinkBtn');
+    const linkContainer = document.getElementById('linkContainer');
+    const connectionLinkInput = document.getElementById('connectionLink');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let ws; // Variable WebSocket
+
+    generateLinkBtn.addEventListener('click', async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/create-game/', {
+            // Créer une nouvelle partie et obtenir un identifiant unique du serveur
+            const response = await fetch('http://localhost:8000/api/create-connection/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -43,242 +36,77 @@ async function createGameD(options = {}) {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create game');
+                throw new Error('Impossible de créer une connexion.');
             }
 
             const data = await response.json();
-            const gameLink = data.game_link;
+            const connectionId = data.connection_id;
 
-            const gameLinkContainer = document.getElementById('gameLinkContainer');
-            const gameLinkInput = document.getElementById('gameLinkInput');
-            gameLinkInput.value = gameLink;
-            gameLinkContainer.style.display = 'block';
+            // Affiche le lien à partager
+            const link = `http://${window.location.host}/join/${connectionId}`;
+            connectionLinkInput.value = link;
+            linkContainer.style.display = 'block';
 
-            // Initialize WebSocket connection
-            Dws = new WebSocket(`ws://localhost:8000/ws/game/${data.game_id}/`);
-            
-            Dws.onopen = () => {
-                console.log("WebSocket connection opened.");
+            // Initialiser la connexion WebSocket
+            ws = new WebSocket(`ws://${window.location.host}/ws/connection/${connectionId}/`);
+
+            ws.onopen = () => {
+                console.log("Connexion WebSocket ouverte.");
             };
 
-            Dws.onmessage = (event) => {
+            ws.onmessage = (event) => {
                 const message = JSON.parse(event.data);
-                handleWebSocketMessage(message);
+                if (message.type === 'confirmation') {
+                    statusMessage.style.display = 'block';
+                }
             };
 
-            Dws.onclose = () => {
-                console.log("WebSocket connection closed.");
+            ws.onclose = () => {
+                console.log("Connexion WebSocket fermée.");
             };
 
-            Dws.onerror = (error) => {
-                console.error("WebSocket error:", error);
+            ws.onerror = (error) => {
+                console.error("Erreur WebSocket:", error);
             };
-
         } catch (error) {
-            console.error('Error creating game:', error);
-            alert('Failed to create the game. Please try again.');
-        }
-    }
-
-    // Appeler la fonction pour obtenir le lien du jeu
-    fetchGameLink();
-
-    // Create canvas
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 400;
-    document.getElementById('gameArea').appendChild(canvas);
-
-    const ctx = canvas.getContext('2d');
-
-    // Game variables
-    const paddleWidth = 10;
-    const paddleHeight = 60;
-    const ballSize = 10;
-    const initialBallSpeed = 5;
-    let player = { y: canvas.height / 2 - paddleHeight / 2, score: 0 };
-    let opponent = { y: canvas.height / 2 - paddleHeight / 2, score: 0 };
-    let ball = { x: canvas.width / 2, y: canvas.height / 2, dx: initialBallSpeed, dy: 0 };
-    let animationFrameId = null;
-    let isGameOver = false;
-
-    // Game functions
-    function drawRect(x, y, w, h, color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, w, h);
-    }
-
-    function drawCircle(x, y, r, color) {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2, false);
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    function drawText(text, x, y, color) {
-        ctx.fillStyle = color;
-        ctx.font = '30px Arial';
-        ctx.fillText(text, x, y);
-    }
-
-    function handleWebSocketMessage(message) {
-        switch (message.type) {
-            case 'game_start':
-                startGame();
-                break;
-            case 'game_update':
-                updateGameState(message.data);
-                break;
-            case 'game_over':
-                endGame(message.winner);
-                break;
-            default:
-                console.warn("Unknown message type:", message.type);
-        }
-    }
-
-    function updateGameState(data) {
-        player.y = data.player_y;
-        opponent.y = data.opponent_y;
-        ball.x = data.ball_x;
-        ball.y = data.ball_y;
-        ball.dx = data.ball_dx;
-        ball.dy = data.ball_dy;
-        player.score = data.player_score;
-        opponent.score = data.opponent_score;
-
-        drawGame();
-    }
-
-    function startGame() {
-        DisGameInitialized = true;
-        DisGameActive = true;
-        DhasIncrementedLoss = false;
-        isGameOver = false;
-        document.getElementById('startGameBtn').style.display = 'none';
-        animationFrameId = requestAnimationFrame(gameLoop);
-    }
-
-    function endGame(winner) {
-        isGameOver = true;
-        DisGameActive = false;
-        alert(winner === 'player' ? "You win!" : "Opponent wins!");
-        document.getElementById('startGameBtn').style.display = 'block';
-    }
-
-    function gameLoop() {
-        if (!DisGameInitialized || !DisGameActive) return;
-        updateGame();
-        drawGame();
-        animationFrameId = requestAnimationFrame(gameLoop);
-    }
-
-    function drawGame() {
-        // Clear canvas
-        drawRect(0, 0, canvas.width, canvas.height, '#000');
-
-        // Draw paddles
-        drawRect(0, player.y, paddleWidth, paddleHeight, '#fff');
-        drawRect(canvas.width - paddleWidth, opponent.y, paddleWidth, paddleHeight, '#fff');
-
-        // Draw ball
-        drawCircle(ball.x, ball.y, ballSize, '#fff');
-
-        // Draw scores
-        drawText(player.score, canvas.width / 4, 50, '#fff');
-        drawText(opponent.score, 3 * canvas.width / 4, 50, '#fff');
-    }
-
-    function updateGame() {
-        if (isGameOver) return;
-
-        // Move the ball
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-
-        // Ball collision with top and bottom walls
-        if (ball.y - ballSize < 0 || ball.y + ballSize > canvas.height) {
-            ball.dy = -ball.dy;
-        }
-
-        // Send updated positions to server
-        Dws.send(JSON.stringify({
-            type: 'game_update',
-            data: {
-                player_y: player.y,
-                ball_x: ball.x,
-                ball_y: ball.y,
-                ball_dx: ball.dx,
-                ball_dy: ball.dy,
-                player_score: player.score,
-                opponent_score: opponent.score
-            }
-        }));
-    }
-
-    // Event listener for player paddle
-    function handleMouseMove(e) {
-        if (!isGameOver && DisGameActive) {
-            let rect = canvas.getBoundingClientRect();
-            player.y = e.clientY - rect.top - paddleHeight / 2;
-            // Ensure player paddle stays within the canvas
-            player.y = Math.max(0, Math.min(canvas.height - paddleHeight, player.y));
-        }
-    }
-
-    canvas.addEventListener('mousemove', handleMouseMove);
-
-    document.getElementById('startGameBtn').addEventListener('click', async () => {
-        if (!DisGameActive) {
-            console.log('Starting game...');
-            startGame();
+            console.error('Erreur lors de la création de la connexion:', error);
+            alert('Impossible de créer la connexion. Veuillez réessayer.');
         }
     });
 
-    return {
-        stop: function () {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            canvas.removeEventListener('mousemove', handleMouseMove);
-            gameTab.innerHTML = '';
-            DisGameInitialized = false;
-            DisGameActive = false;
-            Dws.close();
-        },
-    };
-}
+    // Fonction pour rejoindre la connexion (appelée quand l'utilisateur clique sur le lien)
+    async function joinConnection(connectionId) {
+        ws = new WebSocket(`ws://${window.location.host}/ws/connection/${connectionId}/`);
 
-function stopCurrentGameD() {
-    if (DcurrentGameInstance) {
-        DcurrentGameInstance.stop();
-        DcurrentGameInstance = null;
+        ws.onopen = () => {
+            console.log("Connexion WebSocket ouverte pour rejoindre.");
+        };
+
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (message.type === 'confirmation') {
+                statusMessage.style.display = 'block';
+            }
+        };
+
+        ws.onclose = () => {
+            console.log("Connexion WebSocket fermée.");
+        };
+
+        ws.onerror = (error) => {
+            console.error("Erreur WebSocket:", error);
+        };
+
+        // Envoyer un message de connexion au serveur
+        ws.send(JSON.stringify({ type: 'join', connection_id: connectionId }));
     }
-}
 
-window.addEventListener('load', function () {
-    const navItems = document.querySelectorAll('.navbar-nav .nav-link');
-
-    navItems.forEach(function (item) {
-        item.addEventListener('click', function (event) {
-            event.preventDefault();
-            const tabId = event.target.getAttribute('href').substring(1);
-            const tabs = document.querySelectorAll('.tab-content .tab-pane');
-
-            tabs.forEach(function (tab) {
-                tab.classList.remove('active');
-            });
-
-            const currentTab = document.getElementById(tabId);
-            currentTab.classList.add('active');
-
-            if (tabId === 'game_online') {
-                stopCurrentGameD();
-                DcurrentGameInstance = createGameD({ onGameStart: function () { console.log("Game Started!") } });
-            } else {
-                stopCurrentGameD();
-            }
-        });
+    // Vérifier l'URL pour rejoindre la connexion si c'est un lien de jonction
+    window.addEventListener('load', () => {
+        const urlParts = window.location.pathname.split('/');
+        if (urlParts[1] === 'join' && urlParts[2]) {
+            const connectionId = urlParts[2];
+            joinConnection(connectionId);
+        }
     });
-});
+}

@@ -9,7 +9,7 @@ function initHome() {
             <div class="col-md-4">
                 <h3>Quick Start</h3>
                 <p>Jump right into a game or explore our features.</p>
-                <button id="dist_play"class="btn btn-primary">Play Online</button>
+                <button id="game_online"class="btn btn-primary">Play Online</button>
             </div>
             <div class="col-md-4">
                 <h3>Leaderboard</h3>
@@ -33,10 +33,10 @@ function initHome() {
         }
     });
     
-    document.getElementById('dist_play').addEventListener('click', async () => {
+    document.getElementById('game_online').addEventListener('click', async () => {
     	console.log("Rubis");
     	if (typeof createGameD === 'function') {
-    		showTab('dist_play');
+    		showTab('game_online');
     	} else {
     		console.error("Impossible initialized Online Game");
     	}
