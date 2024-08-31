@@ -9,6 +9,7 @@
             Auth.showAuthModal();
             return;
         }
+
         // Clean up the game if we're navigating away from the game tab
         if (tabId !== 'game' && currentGameInstance) {
             if (typeof currentGameInstance === 'function') {
@@ -45,7 +46,8 @@
         if (tabId === 'home' && typeof initHome === 'function') initHome();
         else if (tabId === 'game' && typeof initGame === 'function') initGame();
         else if (tabId === 'user' && typeof initUser === 'function') initUser();
-
+		else if (tabId === 'tournament' && typeof initTournament === 'function') initTournament();
+        
         if (pushState) {
             // Update the URL and add to history
             history.pushState({ tabId: tabId }, '', `#${tabId}`);
@@ -91,6 +93,8 @@
         document.getElementById('signOutBtn').addEventListener('click', () => {
             Auth.signOut();
             // The redirect is now handled in the Auth.signOut() function
+            
+        
         });
     }
 

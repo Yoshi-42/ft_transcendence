@@ -1,7 +1,10 @@
 function initHome() {
     const homeTab = document.getElementById('home');
     homeTab.innerHTML = `
-        <h1 class="display-4">Welcome to Transcendence</h1>
+         <script> 
+
+   		</script>        
+        <h1 class="display-4">Welcomes to Transcendence</h1>
         <p class="lead">This is the home page of our exciting Pong game platform.</p>
         <hr class="my-4">
         <p>Get ready for an unparalleled Pong experience! Challenge your friends, improve your skills, and climb the leaderboards.</p>
@@ -19,8 +22,19 @@ function initHome() {
             <div class="col-md-4">
                 <h3>Tournament</h3>
                 <p>Join our weekly tournaments for exciting prizes!</p>
-                <button class="btn btn-info">Tournament Info</button>
+                <button id="tournament" class="btn btn-info">Tournament Info</button>
             </div>
         </div>
+       
     `;
+  
+  	document.getElementById('tournament').addEventListener('click', async () => {
+        if (typeof initTournament === 'function') {
+        	showTab('tournament');
+        } else {
+            console.error("initTournament function is not defined");
+        }
+    });
 }
+
+
