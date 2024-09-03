@@ -22,9 +22,13 @@ class CreateGameView(APIView):
     def post(self, request):
         user = request.user
 
+
+        print("get_random_string: ", get_random_string)
+		
         # Créer un code de jeu unique
         game_code = get_random_string(length=8)
-
+        print("Generated game code: ", game_code)
+		
         # Créer une nouvelle instance de jeu de manière atomique
         with transaction.atomic():
             game_instance = GameInstance.objects.create(
@@ -42,10 +46,15 @@ class CreateGameView(APIView):
         # Construire le lien de jeu
         game_link = request.build_absolute_uri(reverse('join_game') + f"?game_code={game_code}")
 
+
+        connection_id = str(game_instance.id)  # ou tout autre identifiant unique
+        print("Generated connection ID: ", connection_id)
+
         # Retourner la réponse avec les données du jeu et le lien partageable
         return Response({
             'game': GameInstanceSerializer(game_instance).data,
             'game_link': game_link,
+            'connection_id': connection_id,
         }, status=201)
 
 

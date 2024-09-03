@@ -28,6 +28,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -35,6 +37,7 @@ services:
       - SECRET_KEY=${DJANGO_SECRET_KEY}
       - DEBUG=${DEBUG}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - REDIS_HOST=redis
     networks:
       - app-network
     command: ["/wait-for-it.sh", "db", "sh", "-c", "python manage.py runserver 0.0.0.0:8000"]
@@ -43,6 +46,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+      
+  redis:
+    image: "redis:alpine"
+    ports: 
+      - "6379:6379"
+    networks:
+      - app-network
 
   frontend:
     container_name: ft_frontend
@@ -62,7 +72,7 @@ networks:
   app-network:
     name: ft_transcendence_network
     driver: bridge
-
+  
 volumes:
   postgres_data:
     name: ft_transcendence_db_data

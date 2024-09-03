@@ -6,7 +6,7 @@ async function createGameD(options = {}) {
     // Injecter le code HTML dans `gameTab`
     gameTab.innerHTML = `
         <div id="content">
-            <button id="generateLinkBtn">Générer le lien de connexion</button>
+            <button id="generateLinkBtn">Générer le lien de connexion bleu</button>
             <div id="linkContainer" style="display: none;">
                 <p>Partagez ce lien avec quelqu'un sur le même réseau :</p>
                 <input type="text" id="connectionLink" readonly>
@@ -27,7 +27,7 @@ async function createGameD(options = {}) {
     generateLinkBtn.addEventListener('click', async () => {
         try {
             // Créer une nouvelle partie et obtenir un identifiant unique du serveur
-            const response = await fetch('http://localhost:8000/api/create-connection/', {
+            const response = await fetch('http://localhost:8000/api/game/create/', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -44,11 +44,14 @@ async function createGameD(options = {}) {
 
             // Affiche le lien à partager
             const link = `http://${window.location.host}/join/${connectionId}`;
+            //const link = `http://127.0.0.1:8000/join/${connectionId}`;
             connectionLinkInput.value = link;
             linkContainer.style.display = 'block';
 
             // Initialiser la connexion WebSocket
             ws = new WebSocket(`ws://${window.location.host}/ws/connection/${connectionId}/`);
+            //ws = new WebSocket(`ws://127.0.0.1:8000/ws/connection/${connectionId}/`);
+
 
             ws.onopen = () => {
                 console.log("Connexion WebSocket ouverte.");

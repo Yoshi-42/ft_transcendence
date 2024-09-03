@@ -31,8 +31,8 @@ cp core-serializers.py /app/core/serializers.py
 cp core-views.py /app/core/views.py
 cp core-urls.py /app/core/urls.py
 cp core-admin.py /app/core/admin.py
-cp core-consumers.py /app/core/consumers.py  # New file for Channels
-cp core-routing.py /app/core/routing.py  # New file for Channels
+cp core-consumers.py /app/core/consumers.py 
+cp core-routing.py /app/core/routing.py
 cp core-game_views.py /app/core/game_views.py
 
 

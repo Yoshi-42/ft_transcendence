@@ -1,21 +1,24 @@
 # consumers.py
-
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
 class GameConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Rejoindre le groupe de jeu
+        # Extraire le connection_id de l'URL de l'appel
+        self.connection_id = self.scope['url_route']['kwargs']['connection_id']
+        self.group_name = f"game_{self.connection_id}"
+
+        # Rejoindre le groupe de jeu spécifique
         await self.channel_layer.group_add(
-            "game_group",
+            self.group_name,
             self.channel_name
         )
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Quitter le groupe de jeu
+        # Quitter le groupe de jeu spécifique
         await self.channel_layer.group_discard(
-            "game_group",
+            self.group_name,
             self.channel_name
         )
 
@@ -23,9 +26,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
-        # Envoyer le message à tous les membres du groupe
+        # Envoyer le message à tous les membres du groupe spécifique
         await self.channel_layer.group_send(
-            "game_group",
+            self.group_name,
             {
                 'type': 'game_message',
                 'message': message

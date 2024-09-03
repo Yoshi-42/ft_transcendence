@@ -1,4 +1,6 @@
 #!/bin/bash
+echo "Down Docker..."
+docker-compose down
 
 # Pruning Docker networks
 echo "Pruning Docker networks..."
