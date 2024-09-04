@@ -38,7 +38,7 @@ async function createGameD(options = {}) {
             if (!response.ok) {
                 throw new Error('Impossible de créer une connexion.');
             }
-
+console.log("Jaspe")
             const data = await response.json();
             const connectionId = data.connection_id;
 
@@ -47,7 +47,7 @@ async function createGameD(options = {}) {
             //const link = `http://127.0.0.1:8000/join/${connectionId}`;
             connectionLinkInput.value = link;
             linkContainer.style.display = 'block';
-
+console.log("Obscidienne")
             // Initialiser la connexion WebSocket
             ws = new WebSocket(`ws://${window.location.host}/ws/connection/${connectionId}/`);
             //ws = new WebSocket(`ws://127.0.0.1:8000/ws/connection/${connectionId}/`);
