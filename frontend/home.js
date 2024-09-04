@@ -24,10 +24,25 @@ function initHome() {
                 <p>Join our weekly tournaments for exciting prizes!</p>
                 <button id="tournament" class="btn btn-info">Tournament Info</button>
             </div>
+            <div class="mt-4">
+            <h3>Explore in 3D</h3>
+            <button id="explore_3d" class="btn btn-success">View 3D Scene</button>
+        	</div>
         </div>
        
     `;
   
+  
+	document.getElementById('explore_3d').addEventListener('click', () => {
+        if (typeof initTournament === 'function') {
+        	showTab('3d_pong');
+        } else {
+            console.error("initTournament function is not defined");
+        }
+        //initThreeJS();
+    });
+    
+    
   	document.getElementById('tournament').addEventListener('click', async () => {
         if (typeof initTournament === 'function') {
         	showTab('tournament');
