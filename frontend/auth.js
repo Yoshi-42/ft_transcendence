@@ -10,6 +10,10 @@ const Auth = (function() {
         authToken = localStorage.getItem('authToken');
         refreshToken = localStorage.getItem('refreshToken');
         currentUser = localStorage.getItem('currentUser');
+        if (refreshToken) {
+            refreshAccessToken();
+        }
+
         updateUI();
         
         initModal();
@@ -55,6 +59,69 @@ const Auth = (function() {
             signOutBtn.style.display = 'none';
         }
     }
+
+    async function refreshAccessToken() {
+    try {
+        const response = await fetch('http://localhost:8000/api/token/refresh/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh: refreshToken }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            authToken = data.access;
+            localStorage.setItem('authToken', authToken);
+            console.log('New Access token:', authToken);  // Log the new access token
+            return authToken;
+        } else {
+            throw new Error('Failed to refresh token');
+        }
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        signOut(); // Déconnexion si le refresh échoue
+        return null;
+    }
+}
+
+async function getProtectedData() {
+    // Rafraîchir le token si nécessaire
+    if (!authToken) {
+        authToken = await refreshAccessToken();
+        if (!authToken) {
+            return; // Sortir si le token n'a pas pu être rafraîchi
+        }
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/api/protected/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,  // Inclure le token JWT
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Protected data:', data);
+        } else {
+            // Si la réponse est 401 (Unauthorized), essayer de rafraîchir le token
+            if (response.status === 401) {
+                authToken = await refreshAccessToken();
+                if (authToken) {
+                    return await getProtectedData(); // Réessayer avec le nouveau token
+                }
+            } else {
+                throw new Error('Failed to fetch protected data');
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching protected data:', error);
+    }
+}
+
 
     async function signIn(username, password) {
         try {
