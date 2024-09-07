@@ -155,14 +155,14 @@ async function getProtectedData() {
         }
     }
 
-    async function signUp(username, email, password) {
+    async function signUp(username, email, password, enable_2fa) {
         try {
             const response = await fetch('http://localhost:8000/api/signup/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, email, password }),
+                body: JSON.stringify({ username, email, password, enable_2fa }),
             });
 
             if (response.ok) {
@@ -237,8 +237,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = document.getElementById('signupUsername').value;
         const email = document.getElementById('signupEmail').value;
         const password = document.getElementById('signupPassword').value;
+        const enable_2FA = document.getElementById('enable2FA').checked;
         try {
-            await Auth.signUp(username, email, password);
+            await Auth.signUp(username, email, password, enable_2FA);
             window.showTab('home');
         } catch (error) {
             alert('Error creating account. Please try again.');

@@ -31,6 +31,7 @@ cp core-serializers.py /app/core/serializers.py
 cp core-views.py /app/core/views.py
 cp core-urls.py /app/core/urls.py
 cp core-admin.py /app/core/admin.py
+cp core-utils.py /app/core/utils.py
 
 # Run migrations
 python manage.py makemigrations

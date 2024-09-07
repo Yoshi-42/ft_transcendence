@@ -9,6 +9,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from .serializers import UserSerializer
 import logging
+from .utils import send_otp
+from django.core.cache import cache
+
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -24,6 +27,7 @@ class SignUpView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             }, status=status.HTTP_201_CREATED)
+        print(serializer.errors)  # Ajoutez cette ligne pour voir les erreurs de validation
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SignInView(APIView):
@@ -33,12 +37,38 @@ class SignInView(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
+            # Générer et envoyer l'OTP
+            otp = send_otp(request)
+            # Stocker l'OTP dans le cache avec une clé unique (par exemple, le nom d'utilisateur)
+            cache.set(f'otp_{username}', otp, timeout=300)  # L'OTP expire après 5 minutes
+            print("Je sais pas quoi dire")
+            return Response({'message': 'OTP has been sent to your registered email/phone.'})
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class VerifyOTPView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        otp = request.data.get('otp')
+        user = authenticate(username=username)
+
+        if user:
+            # Récupérer l'OTP stocké
+            stored_otp = cache.get(f'otp_{username}')
+            if stored_otp == otp:
+                # OTP correct, générer les jetons JWT
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                })
+            else:
+                return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
 
 class UserDetailView(APIView):
     # permission_classes = [IsAuthenticated]
