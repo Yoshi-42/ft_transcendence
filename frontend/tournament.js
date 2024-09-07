@@ -1,7 +1,5 @@
 let players = [];
 
-
-
 let P1isUpPressed = false;
 let P1isDownPressed = false;
 let P2isUpPressed = false;
@@ -19,23 +17,23 @@ let TisGameActive = false;
 
 function initTournament() {
     const tournamentTab = document.getElementById('tournament');
+    
     tournamentTab.innerHTML = `
         <h1 class="display-4">Tournament Page 38</h1>
         <p class="lead">Join our exciting tournaments and win amazing prizes!</p>
         <hr class="my-4">
         <p>Check out the upcoming tournaments or view the results of past ones.</p>
-        
         <div class="mb-3">
             <label for="playerName" class="form-label">Player Name</label>
             <input type="text" id="playerName" class="form-control" placeholder="Enter player name">
         </div>
         <button id="addPlayerBtn" class="btn btn-primary mb-3">Add Player</button>
-
         <h3>Players:</h3>
         <ul id="playerList" class="list-group mb-4"></ul>
- 
         <button id="joinTournamentBtn" class="btn btn-success">Join Tournament</button>
     `;
+
+    console.log("Tournament debug : " , tournamentTab);
     console.log("Tournament initialized!");
    
     
@@ -71,6 +69,7 @@ function initTournament() {
 	});
 
 
+    console.log("Tournament debug : " , tournamentTab);
 }
 
 function startTournament(players) {
@@ -543,9 +542,11 @@ window.initGameT = function(options = {}, player1, player2) {
     //console.log("New game initialized, cleanup function stored");
 };
 
-
-
-
+/*
+window.initTournament = function(options = {}) {
+    initTournament2();
+}
+*/
 
 
 

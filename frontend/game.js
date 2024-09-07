@@ -27,6 +27,7 @@ async function createGame(options = {}) {
         <button id="startGameBtn" class="btn btn-success mt-3">Start Game</button>
     `;
 
+
     // Create canvas
     const canvas = document.createElement('canvas');
     canvas.width = 800;

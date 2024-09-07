@@ -1,5 +1,7 @@
 #!/bin/bash
 
+docker-compose down
+
 # Pruning Docker networks
 echo "Pruning Docker networks..."
 docker network prune -f

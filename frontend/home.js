@@ -1,9 +1,6 @@
 function initHome() {
     const homeTab = document.getElementById('home');
-    homeTab.innerHTML = `
-         <script> 
-
-   		</script>        
+    homeTab.innerHTML = `       
         <h1 class="display-4">Welcomes to Transcendence</h1>
         <p class="lead">This is the home page of our exciting Pong game platform.</p>
         <hr class="my-4">
@@ -22,11 +19,15 @@ function initHome() {
             <div class="col-md-4">
                 <h3>Tournament</h3>
                 <p>Join our weekly tournaments for exciting prizes!</p>
-                <button id="tournament" class="btn btn-info">Tournament Info</button>
+                <button id="tournament_btn" class="btn btn-info">Tournament Info</button>
             </div>
             <div class="mt-4">
             <h3>Explore in 3D</h3>
             <button id="explore_3d" class="btn btn-success">View 3D Scene</button>
+        	</div>
+            <div class="mt-4">
+            <h3>Test bouton</h3>
+            <button id="test" class="btn btn-success">Test Button</button>
         	</div>
         </div>
        
@@ -34,7 +35,7 @@ function initHome() {
   
   
 	document.getElementById('explore_3d').addEventListener('click', () => {
-        if (typeof initTournament === 'function') {
+        if (typeof create3DPong === 'function') {
         	showTab('3d_pong');
         } else {
             console.error("initTournament function is not defined");
@@ -42,8 +43,15 @@ function initHome() {
         //initThreeJS();
     });
     
+    // document.getElementsById('test').addEventListener('click',  () => {
+    //     if (typeof initTest === 'function'){
+    //         showTab('test')
+    //     } else {
+    //         console.error("initTest function is not defined");
+    //     }
+    // });
     
-  	document.getElementById('tournament').addEventListener('click', async () => {
+  	document.getElementById('tournament_btn').addEventListener('click', async () => {
         if (typeof initTournament === 'function') {
         	showTab('tournament');
         } else {
