@@ -41,7 +41,7 @@ class SignInView(APIView):
                 otp = send_otp(request, user.email)
                 print(user.email)
                 print(type(user.email))
-                cache.set(f'otp_{user.username}', otp, timeout=10)
+                cache.set(f'otp_{user.username}', otp, timeout=300)
                 print(f"Envoi de l'OTP {otp}")
                 return Response({'message': 'OTP has been sent to your registered email.'})
             refresh = RefreshToken.for_user(user)

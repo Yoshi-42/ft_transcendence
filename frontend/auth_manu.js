@@ -1,13 +1,10 @@
-let tempUsername = null;
-
+// auth.js
 
 const Auth = (function() {
     let authToken = null;
     let refreshToken = null;
     let currentUser = null;
     let authModal = null;
-    let otpModal = null;
-    let otpUsername = null;
 
     function init() {
         authToken = localStorage.getItem('authToken');
@@ -19,21 +16,13 @@ const Auth = (function() {
 
         updateUI();
         
-        initModals();
+        initModal();
     }
 
-    function initModals() {
-        const authModalElement = document.getElementById('authModal');
-        if (authModalElement) {
-            authModal = new bootstrap.Modal(authModalElement, {
-                backdrop: 'static',
-                keyboard: false
-            });
-        }
-
-        const otpModalElement = document.getElementById('otpModal');
-        if (otpModalElement) {
-            otpModal = new bootstrap.Modal(otpModalElement, {
+    function initModal() {
+        const modalElement = document.getElementById('authModal');
+        if (modalElement) {
+            authModal = new bootstrap.Modal(modalElement, {
                 backdrop: 'static',
                 keyboard: false
             });
@@ -46,7 +35,7 @@ const Auth = (function() {
 
     function showAuthModal() {
         if (!authModal) {
-            initModals();
+            initModal();
         }
         if (authModal) {
             authModal.show();
@@ -56,22 +45,6 @@ const Auth = (function() {
     function hideAuthModal() {
         if (authModal) {
             authModal.hide();
-        }
-    }
-
-    function showOtpModal() {
-        // document.getElementById('otpUsername').value = tempUsername;
-        if (!otpModal) {
-            initModals();
-        }
-        if (otpModal) {
-            otpModal.show();
-        }
-    }
-
-    function hideOtpModal() {
-        if (otpModal) {
-            otpModal.hide();
         }
     }
 
@@ -88,30 +61,32 @@ const Auth = (function() {
     }
 
     async function refreshAccessToken() {
-        try {
-            const response = await fetch('http://localhost:8000/api/token/refresh/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ refresh: refreshToken }),
-            });
+    try {
+        const response = await fetch('http://localhost:8000/api/token/refresh/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh: refreshToken }),
+        });
 
-            if (response.ok) {
-                const data = await response.json();
-                authToken = data.access;
-                localStorage.setItem('authToken', authToken);
-                console.log('New Access token:', authToken);  // Log the new access token
-                return authToken;
-            } else {
-                throw new Error('Failed to refresh token');
-            }
-        } catch (error) {
-            console.error('Error refreshing token:', error);
-            signOut(); // Déconnexion si le refresh échoue
-            return null;
+        if (response.ok) {
+            const data = await response.json();
+            authToken = data.access;
+            localStorage.setItem('authToken', authToken);
+            console.log('New Access token:', authToken);  // Log the new access token
+            return authToken;
+        } else {
+            throw new Error('Failed to refresh token');
         }
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        signOut(); // Déconnexion si le refresh échoue
+        return null;
     }
+}
+
+
 
     async function signIn(username, password) {
         try {
@@ -125,10 +100,9 @@ const Auth = (function() {
 
             if (response.ok) {
                 const data = await response.json();
-                if (data.message === 'OTP has been sent to your registered email.') {
-                    tempUsername = username;
+                if (data.message === 'OTP has been sent to your registered email/phone.') {
                     // Rediriger vers la page de saisie de l'OTP ou afficher une modal
-                    showOtpModal();
+                    showOtpModal(username);
                     return;
                 }
                 authToken = data.access;
@@ -150,6 +124,9 @@ const Auth = (function() {
             throw error;
         }
     }
+
+
+
 
     async function signUp(username, email, password, enable_2fa) {
         try {
@@ -183,43 +160,6 @@ const Auth = (function() {
         }
     }
 
-    async function verifyOtp(username, otp) {
-        try {
-            console.log("OTP dans verufyOTP = ");
-            console.log(otp);
-            console.log("Username dans verifyOTP = ");
-            console.log(username);
-            const response = await fetch('http://localhost:8000/api/verify-otp/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, otp }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                authToken = data.access;
-                refreshToken = data.refresh;
-                currentUser = username;
-                localStorage.setItem('authToken', authToken);
-                localStorage.setItem('refreshToken', refreshToken);
-                localStorage.setItem('currentUser', currentUser);
-                console.log('Access token:', authToken);  // Log the access token
-                console.log('Refresh token:', refreshToken);  // Log the refresh token
-                hideOtpModal();
-                hideAuthModal();
-                updateUI();
-                return true;
-            } else {
-                throw new Error('Invalid OTP');
-            }
-        } catch (error) {
-            console.error('Error during OTP verification:', error);
-            throw error;
-        }
-    }
-
     function signOut() {
         authToken = null;
         refreshToken = null;
@@ -242,11 +182,8 @@ const Auth = (function() {
         isAuthenticated,
         showAuthModal,
         hideAuthModal,
-        showOtpModal,
-        hideOtpModal,
         signIn,
         signUp,
-        verifyOtp,
         signOut,
         redirectToRoot
     };
@@ -275,37 +212,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('signupPassword').value;
         const enable_2FA = document.getElementById('enable2FA').checked;
         try {
-            tempUsername = username;
             await Auth.signUp(username, email, password, enable_2FA);
             window.showTab('home');
         } catch (error) {
             alert('Error creating account. Please try again.');
         }
     });
-
-    document.getElementById('otpForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const otpCode = document.getElementById('otpCode').value;
-        const username = tempUsername;
-        console.log("Submit not clicked yet\notp = ");
-        console.log(otpCode);
-        // const username = document.getElementById('otpUsername').value;
-        console.log("Submit not clicked yet clicked\nusername = ");
-        console.log(username);
-        try {
-            console.log("Submit clicked\notp = ");
-            console.log(otpCode);
-            console.log("Submit clicked\nusername = ");
-            console.log(username);
-            await Auth.verifyOtp(username, otpCode);
-            window.showTab('home');
-        } catch (error) {
-            alert('Invalid OTP. Please try again.');
-        }
-    });
-
-    document.getElementById('signOutBtn').addEventListener('click', () => {
-        Auth.signOut();
-    });
-
 });
