@@ -38,28 +38,71 @@ async function create3DPong(options = {}) {
     renderer.setSize(800, 400);
     document.getElementById('3dGameArea').appendChild(renderer.domElement);
 
+    const composer = new THREE.EffectComposer(renderer);
+    const renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloomPass = new THREE.UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.0,    // Force du glow
+        0.2,    // Rayon
+        0.85    // Seuil
+    );
+    composer.addPass(bloomPass);
+
+    
+
     // Paddle and ball geometry
     const paddleWidth = 1, paddleHeight = 3, paddleDepth = 0.5;
     const ballSize = 0.5;
 
+    //AI variables
+    let lastMoveTime = 0;
+    let targetY = heightBoard / 2;
+    let aiReactionDelay = 0;
+    let aiAccuracy = 0.9;
+    let aiPredictionError = 0;
+    let aiMovementSpeed = 0.05;
+
+
+    //const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+
     const paddleGeometry = new THREE.BoxGeometry(paddleWidth, paddleHeight, paddleDepth);
     const ballGeometry = new THREE.SphereGeometry(ballSize, 32, 32);
-    const wallGeometry = new THREE.BoxGeometry(widthBoard, 0.5, 0.5); 
+    //const floorGeometry = new THREE.PlaneGeometry(18, 18);
+    const wallGeometry = new THREE.BoxGeometry(widthBoard * 2, 0.5, 0.5); 
 	const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    //const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff });
+    //const floorMaterial = new THREE.MeshStandardMaterial({color : 0x0000aa, metalness : 0.9, roughtness : 0.1});
+    // const floorMaterial = new THREE.MeshStandardMaterial({
+    //     color: 0x000000, // Noir pour un effet sobre
+    //     metalness: 0.8,  // Reflets métalliques
+    //     roughness: 0.2,  // Un peu de rugosité pour ne pas avoir un miroir parfait
+    //     //envMap: cubeTexture // Ajouter une map environnementale pour des réflexions
+    //   });
+    //const glowingMaterial = new THREE.MeshStandardMaterial({color : 0xffffff, emissive : 0xffa500 , emissiveIntensity : 1.5 })
+    const glowingMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff, // Couleur principale (blanche)
+        emissive: 0xffffff, // Couleur d'émission (glow)
+        emissiveIntensity: 1.0, // Intensité de la lumière
+      });
+
+    
 
     const playerPaddle = new THREE.Mesh(paddleGeometry, material);
-    const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
-	const rightWall = new THREE.Mesh(wallGeometry, wallMaterial);
+    const leftWall = new THREE.Mesh(wallGeometry, glowingMaterial);
+	const rightWall = new THREE.Mesh(wallGeometry, glowingMaterial);
     const aiPaddle = new THREE.Mesh(paddleGeometry, material);
     const ball = new THREE.Mesh(ballGeometry, material);
+    //const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
     // Positions
     playerPaddle.position.set(-widthBoard + 1, 0, 0);
     aiPaddle.position.set(widthBoard - 1, 0, 0);
     ball.position.set(0, 0, 0);
-    
-    var Y_AXIS = new THREE.Vector3(0 , 1 , 0);
+    //floor.position.set(0, 0, -0.3);
+    //var Y_AXIS = new THREE.Vector3(0 , 1 , 0);
 	camera.position.z = 10;
 	camera.position.x = -15;
 	//camera.lookAt(aiPaddle);
@@ -72,15 +115,21 @@ async function create3DPong(options = {}) {
 	
 	
     // Add objects to scene
+    //scene.add(light);
     scene.add(playerPaddle);
     scene.add(aiPaddle);
     scene.add(ball);
 	scene.add(leftWall);
 	scene.add(rightWall);
+    //scene.add(floor);
 
     // Lighting (optional)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+    //const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    //scene.add(ambientLight);
+    const light = new THREE.PointLight(0xffffff, 1.5);
+    light.position.set(0, 10, 0);
+    scene.add(light);
+
 
     // Camera position
     //camera.position.set(0, 5, -15);
@@ -92,11 +141,18 @@ async function create3DPong(options = {}) {
     let aiScore = 0;
     let ballSpeedX = 0.1, ballSpeedY = 0.05;
 
+
+    function animate() {
+        requestAnimationFrame(animate);
+        composer.render();
+    }
+    animate();
+
     // Game functions
     function updateGame() {
         ball.position.x += ballSpeedX;
         ball.position.y += ballSpeedY;
-
+        animate();
         // Collision with top/bottom walls
         if (ball.position.y + ballSize > heightBoard || ball.position.y - ballSize < -heightBoard) {
             ballSpeedY = -ballSpeedY;
@@ -104,15 +160,24 @@ async function create3DPong(options = {}) {
 
         // Collision with paddles
         if (ball.position.x - ballSize < playerPaddle.position.x + paddleWidth / 2 &&
-            ball.position.y < playerPaddle.position.y + paddleHeight / 2 &&
-            ball.position.y > playerPaddle.position.y - paddleHeight / 2) {
-            ballSpeedX = -ballSpeedX;
+            ball.position.y < playerPaddle.position.y + paddleHeight / 2  &&
+            ball.position.y > playerPaddle.position.y - paddleHeight / 2  
+        )
+        {
+                ballSpeedX = Math.abs(ballSpeedX);
+                let collidePoint = (ball.position.y - (playerPaddle.position.y + paddleHeight / 2)) / (paddleHeight / 2);
+                ballSpeedY = speed3D * 1.5 * collidePoint;
+                ball.position.x = playerPaddle.position.x + paddleWidth / 2 + ballSize;
         }
-
         if (ball.position.x + ballSize > aiPaddle.position.x - paddleWidth / 2 &&
             ball.position.y < aiPaddle.position.y + paddleHeight / 2 &&
-            ball.position.y > aiPaddle.position.y - paddleHeight / 2) {
-            ballSpeedX = -ballSpeedX;
+            ball.position.y > aiPaddle.position.y - paddleHeight / 2
+        )
+        {
+                ballSpeedX = -Math.abs(ballSpeedX);
+                let collidePoint = (ball.position.y - (aiPaddle.position.y + paddleHeight / 2)) / (paddleHeight / 2);
+                ballSpeedY = speed3D * 1.5 * collidePoint;
+                ball.position.x = aiPaddle.position.x - paddleWidth / 2 - ballSize;
         }
 
 		updatePlayerPosition();
@@ -127,8 +192,8 @@ async function create3DPong(options = {}) {
         }
 
         // Move AI paddle
-        aiPaddle.position.y += (ball.position.y - aiPaddle.position.y) * 0.05;
-
+        //aiPaddle.position.y += (ball.position.y - aiPaddle.position.y) * 0.05;
+        AIMovement()
         // Render scene
         renderer.render(scene, camera);
 
@@ -169,12 +234,12 @@ async function create3DPong(options = {}) {
  	function updatePlayerPosition() {
     if (P1isUpPresse3D && !P1isDownPressed3D) {
         playerPaddle.position.y -= speed3D;
-        playerPaddle.position.y = Math.min(3, playerPaddle.position.y);
     }
     if (P1isDownPressed3D && !P1isUpPresse3D) {
         playerPaddle.position.y += speed3D;
-        playerPaddle.position.y = Math.max(-3, playerPaddle.position.y);
     }
+    playerPaddle.position.y = Math.max( -5, playerPaddle.position.y);
+    playerPaddle.position.y = Math.min( 5, playerPaddle.position.y);
 }
     
 
@@ -193,6 +258,47 @@ async function create3DPong(options = {}) {
     function cleanup3DGame() {
         is3DGameInitialized = false;
         gameTab.innerHTML = '';
+    }
+
+    function AIMovement()
+    {
+        const currentTime = Date.now();
+        const hBoard = heightBoard;
+        const wBoard = widthBoard;
+        if (currentTime - lastMoveTime >= 1000){
+
+            aiReactionDelay = Math.random() * 200;
+            aiPredictionError = (Math.random() - 0.5) * wBoard * 0.1;
+
+            let timeToReach = (wBoard - paddleWidth - ball.position.x) / ballSpeedX;
+            let predictedY = ball.position.y + (ballSpeedY * timeToReach) + aiPredictionError;
+            targetY = predictedY - paddleHeight / 2 ; 
+
+            targetY = aiPaddle.position.y + (targetY - aiPaddle.position.y) * aiAccuracy;
+
+            //targetY = Math.max(0, Math.min(hBoard - paddleHeight, targetY));
+            targetY = Math.max(-hBoard, Math.min(hBoard , targetY));
+            // targetY = Math.max(-(hBoard / 2) + paddleHeight / 2, 
+            //     Math.min((hBoard / 2) - paddleHeight / 2, targetY));
+
+            lastMoveTime = currentTime;            
+        }
+
+        if (currentTime - lastMoveTime >= aiReactionDelay){
+            if (Math.abs(aiPaddle.position.y - targetY) > aiMovementSpeed){
+                aiPaddle.position.y += aiPaddle.position.y < targetY ? aiMovementSpeed : -aiMovementSpeed;
+            } else {
+                aiPaddle.position.y = targetY;
+            }
+        }
+
+        //aiPaddle.position.y = Math.max(0, Math.min(hBoard - paddleWidth, aiPaddle.position.y));
+        // aiPaddle.position.y = Math.max(-(hBoard/2) + paddleWidth / 2, 
+        //     Math.min(hBoard / 2 - paddleWidth / 2, aiPaddle.position.y));
+        
+        
+        aiPaddle.position.y = Math.max( (-hBoard / 2) + paddleWidth * 2, 
+                            Math.min((hBoard / 2) - paddleWidth * 2, aiPaddle.position.y));
     }
 
     return cleanup3DGame;
