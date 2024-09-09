@@ -84,10 +84,15 @@
                                     <label for="signupPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="signupPassword" required>
                                 </div>
-                                <div>
-                                    <button id="oauth42Button">Se connecter avec 42</button><br><br>
+                                <body>
+                                    <button id="oauth42Button">Login with 42</button>
 
-                                </div>
+                                    <script type="text/javascript">
+                                        document.getElementById('oauth42Button').addEventListener('click', () => {
+                                            window.location.href = 'http://localhost:8000/api/42/login/';
+                                        });
+                                    </script>
+                                </body>
                                 <button type="submit" class="btn btn-primary">Sign Up</button>
                             </form>
                         </div>

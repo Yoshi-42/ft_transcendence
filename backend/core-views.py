@@ -1,8 +1,11 @@
+from django.shortcuts import redirect, render
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from .serializers import UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import JsonResponse
@@ -10,9 +13,72 @@ from django.db.models import F
 from django.contrib.auth import get_user_model
 import logging
 import os
+import urllib.parse
+import requests
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+
+def forty_two_login(request):
+    base_url = "https://api.intra.42.fr/oauth/authorize"
+    params = {
+        'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
+        'redirect_uri': 'http://localhost/api/42/callback/',
+        'response_type': 'code',
+    }
+    url = f"{base_url}?{urllib.parse.urlencode(params)}"
+    print(f"URL = {url}")
+    return redirect(url)
+
+
+# views.py
+
+def forty_two_callback(request):
+    code = request.GET.get('code')
+    token_url = "https://api.intra.42.fr/oauth/token"
+    token_data = {
+        'grant_type': 'authorization_code',
+        'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
+        'client_secret': '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',
+        'code': code,
+        'redirect_uri': 'http://localhost/api/42/callback/',
+    }
+    token_response = requests.post(token_url, data=token_data)
+    token_json = token_response.json()
+    access_token = token_json.get('access_token')
+
+    user_info_url = "https://api.intra.42.fr/v2/me"
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+    user_info_response = requests.get(user_info_url, headers=headers)
+    user_info = user_info_response.json()
+
+    # Extraire les informations nécessaires de l'utilisateur
+    username = user_info['login']
+    email = user_info['email']
+    first_name = user_info['first_name']
+    last_name = user_info['last_name']
+
+    # Vérifier si l'utilisateur existe déjà, sinon le créer
+    user, created = User.objects.get_or_create(username=username, defaults={
+        'email': email,
+        'first_name': first_name,
+        'last_name': last_name,
+    })
+
+    if created:
+        user.set_unusable_password()
+        user.save()
+
+    # Connecter l'utilisateur
+    login(request, user)
+
+    return redirect('home')  # Rediriger vers la page d'accueil ou une autre page appropriée
+
+
 
 class SignUpView(APIView):
     permission_classes = [AllowAny]
@@ -163,15 +229,16 @@ class OAuthLogin(APIView):
         try:
             base_url = 'https://api.intra.42.fr/oauth/authorize'
             params = {
-                'client_id': os.environ['OAUTH_CLIENT_ID'],
-                'redirect_uri': os.environ['OAUTH_REDIRECT_URI'],
+                'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
+                'redirect_uri': 'http://localhost:8000/accounts/42/callback/',
                 'response_type': 'code',
                 'scope': 'public',
             }
             url = f"{base_url}?{urlencode(params)}"
             # print(f'Final URL from OAuthLogin: {url}')
             print("TARTOPOM")
-            return Response(url)
+            print(url)
+            return redirect(url)
         # return redirect('https://www.google.com')
         except KeyError as e:
             return Response({'error': f'Missing environment variable: {str(e)}'}, status=500)
@@ -181,42 +248,5 @@ class OAuthLogin(APIView):
     #     return redirect('https://www.google.com')
     
 
-from django.shortcuts import redirect, render
-from django.conf import settings
 
-def oauth_callback(request):
-    code = request.GET.get('code')
-
-    if not code:
-        return render(request, 'error.html', {"message": "No code provided by 42."})
-
-    token_url = 'https://api.intra.42.fr/oauth/token'
-    token_data = {
-        'grant_type': 'authorization_code',
-        'client_id': settings.OAUTH_CLIENT_ID,
-        'client_secret': settings.OAUTH_CLIENT_SECRET,
-        'code': code,
-        'redirect_uri': settings.OAUTH_REDIRECT_URI,
-    }
-    token_headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    
-    # Send request to 42 for access token
-    token_r = requests.post(token_url, data=token_data, headers=token_headers)
-    token_json = token_r.json()
-
-    # Check if access token is present
-    if 'access_token' in token_json:
-        access_token = token_json['access_token']
-        
-        # Use the access token to get user data
-        user_data_url = 'https://api.intra.42.fr/v2/me'
-        user_data_r = requests.get(user_data_url, headers={'Authorization': f'Bearer {access_token}'})
-        user_data = user_data_r.json()
-
-        # Now you can process the user_data as you wish (e.g., creating or logging in a user)
-        
-        # Example: redirect to a success page
-        return render(request, 'success.html', {'user_data': user_data})
-    else:
-        return render(request, 'error.html', {'message': "Failed to retrieve access token."})
 

@@ -122,7 +122,7 @@ const Auth = (function() {
 
     async function oauthSignUP()
     {
-        const response = await fetch('http://localhost:8000/api/oauth/login/42/', {
+        const response = await fetch('http://localhost:8000/api/42/login/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

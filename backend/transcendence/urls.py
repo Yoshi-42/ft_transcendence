@@ -22,7 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
     path('api/', include('core.urls')),
-	path('oauth/login/42/', views.OAuthLogin, name='oauth_login'),
-    path('auth/callback/', views.oauth_callback, name='oauth_callback'),
+
 	
 ]
