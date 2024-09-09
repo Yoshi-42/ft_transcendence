@@ -169,7 +169,7 @@ class OAuthLogin(APIView):
                 'scope': 'public',
             }
             url = f"{base_url}?{urlencode(params)}"
-            # print(f'Final URL from OAuthLogin: {url}')
+            print(f'Final URL from OAuthLogin: {url}')
             print("TARTOPOM")
             return Response(url)
         # return redirect('https://www.google.com')

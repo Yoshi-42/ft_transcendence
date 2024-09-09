@@ -120,6 +120,25 @@ const Auth = (function() {
         }
     }
 
+    async function oauthSignUP()
+    {
+        const response = await fetch('http://localhost:8000/api/oauth/login/42/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        console.log(response);
+        if (response.ok)
+        {
+            console.log("OK CHEPAKOI");
+            return;
+        }
+        else
+            console.log("crot");
+
+    }
+
     function signOut() {
         authToken = null;
         refreshToken = null;
@@ -145,8 +164,10 @@ const Auth = (function() {
         signIn,
         signUp,
         signOut,
-        redirectToRoot
+        redirectToRoot,
+        oauthSignUP,
     };
+
 })();
 
 // Set up event listeners for auth forms
@@ -177,4 +198,12 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Error creating account. Please try again.');
         }
     });
+
+
+    document.getElementById('oauth42Button').addEventListener('click', () => {
+        console.log('Oauth button clicked oyeah');
+        Auth.oauthSignUP();
+        // window.location.href = '/oauth/login/42/';
+    });
+    
 });

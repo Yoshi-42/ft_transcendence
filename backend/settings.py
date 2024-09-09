@@ -12,6 +12,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     #'django.contrib.admin',
+    'django.contrib.sites',  # Pour allauth
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -21,6 +22,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'core',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.oauth2',
+    # 'allauth.socialaccount.providers.42',  # Correction pour le provider 42
 ]
 
 MIDDLEWARE = [
@@ -60,7 +66,7 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': 'db',
+        'HOST': 'ft_postgre',
         'PORT': '5432',
     }
 }
