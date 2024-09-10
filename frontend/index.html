@@ -85,10 +85,34 @@
                                     <label for="signupPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="signupPassword" required>
                                 </div>
+                                <div class="mb-3 form-check">
+                                    <label class="form-check-label" for="enable2FA">Enable 2FA</label>
+                                    <input type="checkbox" class="form-check-input" id="enable2FA">
+                                </div>
                                 <button type="submit" class="btn btn-primary">Sign Up</button>
                             </form>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Modal -->
+    <div class="modal fade" id="otpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="otpModalLabel">Enter OTP</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="otpForm">
+                        <div class="mb-3">
+                            <label for="otpInput" class="form-label">OTP</label>
+                            <input type="text" class="form-control" id="otpCode" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Verify OTP</button>
+                    </form>
                 </div>
             </div>
         </div>
