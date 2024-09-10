@@ -154,7 +154,7 @@ async function createGame(options = {}) {
             await updateWinLossCount(playerWon);
             setTimeout(() => {
                 alert(playerWon ? "You win!" : "AI wins!");
-                player.score = ai.score = 0;
+                player.s$core = ai.score = 0;
                 resetBall();
                 isGameOver = false;
                 isGameInitialized = false;

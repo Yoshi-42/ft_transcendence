@@ -1,6 +1,9 @@
 let current3DGameInstance = null;
 let is3DGameInitialized = false;
 
+let isGameOver3D = false;
+let isGameActive3D = false;
+
 let P1isUpPresse3D = false;
 let P1isDownPressed3D = false;
 
@@ -9,8 +12,8 @@ let widthBoard = 15;
 
 let speed3D = 0.05;
 
-
 async function create3DPong(options = {}) {
+
     if (is3DGameInitialized) {
         console.warn("3D game already running.");
         return null;
@@ -30,7 +33,7 @@ async function create3DPong(options = {}) {
         <div id="3dGameArea" class="mt-4"></div>
         <button id="start3DGameBtn" class="btn btn-success mt-3">Start 3D Game</button>
     `;
-
+    
     // Set up Three.js scene
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -38,19 +41,18 @@ async function create3DPong(options = {}) {
     renderer.setSize(800, 400);
     document.getElementById('3dGameArea').appendChild(renderer.domElement);
 
+    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
     const composer = new THREE.EffectComposer(renderer);
     const renderPass = new THREE.RenderPass(scene, camera);
     composer.addPass(renderPass);
 
     const bloomPass = new THREE.UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        new THREE.Vector2(window.innerWidth / 4 , window.innerHeight / 4),
         1.0,    // Force du glow
         0.2,    // Rayon
         0.85    // Seuil
     );
     composer.addPass(bloomPass);
-
-    
 
     // Paddle and ball geometry
     const paddleWidth = 1, paddleHeight = 3, paddleDepth = 0.5;
@@ -64,29 +66,36 @@ async function create3DPong(options = {}) {
     let aiPredictionError = 0;
     let aiMovementSpeed = 0.05;
 
-
-    //const light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
-
     const paddleGeometry = new THREE.BoxGeometry(paddleWidth, paddleHeight, paddleDepth);
     const ballGeometry = new THREE.SphereGeometry(ballSize, 32, 32);
-    //const floorGeometry = new THREE.PlaneGeometry(18, 18);
     const wallGeometry = new THREE.BoxGeometry(widthBoard * 2, 0.5, 0.5); 
 	const wallMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    //const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff });
-    //const floorMaterial = new THREE.MeshStandardMaterial({color : 0x0000aa, metalness : 0.9, roughtness : 0.1});
-    // const floorMaterial = new THREE.MeshStandardMaterial({
-    //     color: 0x000000, // Noir pour un effet sobre
-    //     metalness: 0.8,  // Reflets métalliques
-    //     roughness: 0.2,  // Un peu de rugosité pour ne pas avoir un miroir parfait
-    //     //envMap: cubeTexture // Ajouter une map environnementale pour des réflexions
-    //   });
-    //const glowingMaterial = new THREE.MeshStandardMaterial({color : 0xffffff, emissive : 0xffa500 , emissiveIntensity : 1.5 })
+    //const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff });
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const glowingMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff, // Couleur principale (blanche)
         emissive: 0xffffff, // Couleur d'émission (glow)
         emissiveIntensity: 1.0, // Intensité de la lumière
       });
+
+    
+    ///ligne pointiller/    
+    const lineMaterial = new THREE.LineDashedMaterial({
+        color: 0xffffff,
+        dashSize: 0.5,
+        gapSize: 0.3,
+    });
+
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, heightBoard, 0),
+        new THREE.Vector3(0, -heightBoard, 0),
+    ]);
+
+    const centerLine = new THREE.Line(lineGeometry, lineMaterial);
+    centerLine.computeLineDistances();
+
+    scene.add(centerLine);
+    /// ligne pointiller ///
 
     
 
@@ -95,17 +104,13 @@ async function create3DPong(options = {}) {
 	const rightWall = new THREE.Mesh(wallGeometry, glowingMaterial);
     const aiPaddle = new THREE.Mesh(paddleGeometry, material);
     const ball = new THREE.Mesh(ballGeometry, material);
-    //const floor = new THREE.Mesh(floorGeometry, floorMaterial);
 
     // Positions
     playerPaddle.position.set(-widthBoard + 1, 0, 0);
     aiPaddle.position.set(widthBoard - 1, 0, 0);
     ball.position.set(0, 0, 0);
-    //floor.position.set(0, 0, -0.3);
-    //var Y_AXIS = new THREE.Vector3(0 , 1 , 0);
 	camera.position.z = 10;
 	camera.position.x = -15;
-	//camera.lookAt(aiPaddle);
 	camera.rotation.y = Math.PI * -0.2;
 	camera.rotation.z = Math.PI * -0.5;
 	
@@ -115,25 +120,17 @@ async function create3DPong(options = {}) {
 	
 	
     // Add objects to scene
-    //scene.add(light);
     scene.add(playerPaddle);
     scene.add(aiPaddle);
     scene.add(ball);
 	scene.add(leftWall);
 	scene.add(rightWall);
-    //scene.add(floor);
 
     // Lighting (optional)
-    //const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    //scene.add(ambientLight);
-    const light = new THREE.PointLight(0xffffff, 1.5);
-    light.position.set(0, 10, 0);
-    scene.add(light);
+    // const light = new THREE.PointLight(0xffffff, 1.5);
+    // light.position.set(0, 10, 0);
+    // scene.add(light);
 
-
-    // Camera position
-    //camera.position.set(0, 5, -15);
-	//camera.lookAt(0, 0, 0);
     
 
     // Game variables
@@ -142,17 +139,61 @@ async function create3DPong(options = {}) {
     let ballSpeedX = 0.1, ballSpeedY = 0.05;
 
 
-    function animate() {
-        requestAnimationFrame(animate);
-        composer.render();
+    ///score ////
+    const scoreGeometry = new THREE.PlaneGeometry(10, 5);
+    const scoreMaterial = new THREE.MeshBasicMaterial({ map: createScoreTexture(), transparent: true });
+    const scorePlane = new THREE.Mesh(scoreGeometry, scoreMaterial);
+
+    // Positionner le score au milieu du terrain, à plat sur le sol
+    scorePlane.position.set(0, 0, -2.5); 
+    scorePlane.rotation.z = -(Math.PI / 2);
+    //scorePlane.rotation.x = Math.PI / 2;
+
+    scene.add(scorePlane);
+    /// score ////
+
+
+    // function animate() {
+    //     requestAnimationFrame(animate);
+    //     updateGame();
+    //     composer.render();
+    // }
+    //animate();
+
+
+    async function updateWinLossCount(isWin) {
+        const endpoint = isWin ? 'http://localhost:8000/api/user/increment_wins/' : 'http://localhost:8000/api/user/increment_losses/';
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update win/loss count');
+            }
+            const data = await response.json();
+            console.log(isWin ? `Wins updated: ${data.wins}` : `Losses updated: ${data.losses}`);
+        } catch (error) {
+            console.error('Error updating win/loss count:', error);
+        }
     }
-    animate();
+
+    async function incrementLossCount() {
+        if (!hasIncrementedLoss) {
+            await updateWinLossCount(false);
+            hasIncrementedLoss = true;
+        }
+    }
+
 
     // Game functions
-    function updateGame() {
+    async function updateGame() {
+        if (isGameOver3D) return;
         ball.position.x += ballSpeedX;
         ball.position.y += ballSpeedY;
-        animate();
         // Collision with top/bottom walls
         if (ball.position.y + ballSize > heightBoard || ball.position.y - ballSize < -heightBoard) {
             ballSpeedY = -ballSpeedY;
@@ -191,41 +232,91 @@ async function create3DPong(options = {}) {
             resetBall();
         }
 
+        if (playerScore === 1 || aiScore === 1) {
+            isGameOver3D = true;
+            isGameActive3D = false;
+            const playerWon = playerScore === 1;
+            await updateWinLossCount(playerWon);
+            setTimeout(() => {
+                alert(playerWon ? "You win!" : "AI wins!");
+                playerScore = aiScore = 0;
+                resetBall();
+                isGameOver3D = false;
+                is3DGameInitialized = false;
+                hasIncrementedLoss = false;
+                document.getElementById('start3DGameBtn').style.display = 'block';
+                //drawGame();
+            }, 100);
+        }
+
         // Move AI paddle
-        //aiPaddle.position.y += (ball.position.y - aiPaddle.position.y) * 0.05;
         AIMovement()
+
         // Render scene
         renderer.render(scene, camera);
 
-        if (is3DGameInitialized) {
-            requestAnimationFrame(updateGame);
-        }
+        // if (is3DGameInitialized) {
+        //     requestAnimationFrame(updateGame);
+        // }
+        //animate();
     }
 
+    function createScoreTexture() {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 128;
+    
+        context.fillStyle = 'black';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+    
+        context.fillStyle = 'white';
+        context.font = '48px ScoreFont';
+    
+        const text = `${playerScore} - ${aiScore}`;
+    
+        const textWidth = context.measureText(text).width;
+        const xPosition = (canvas.width - textWidth) / 2;
+        const yPosition = (canvas.height / 2) + 24;
+        context.fillText(text, xPosition, yPosition);
+    
+        const texture = new THREE.CanvasTexture(canvas);
+        return texture;
+    }
+    
+
+    function updateScore() {
+        scoreMaterial.map = createScoreTexture();
+        scoreMaterial.map.needsUpdate = true; // Indiquer que la texture a changé
+    }
+
+    
     function resetBall() {
         ball.position.set(0, 0, 0);
         ballSpeedX = -ballSpeedX;
         ballSpeedY = (Math.random() - 0.5) * 0.1;
+
+        updateScore();
     }
     
     function handleKeyDown(e) {
-    	//if (!isGameOver && TisGameActive) {
+    	if (!isGameOver3D){ //&& TisGameActive) {
         if (e.key === 'ArrowRight') {
             P1isUpPresse3D = true;
         } else if (e.key === 'ArrowLeft') {
             P1isDownPressed3D = true;
         	}
-    	//}
+    	}
  	}
  	
- 		function handleKeyUp(e) {
-    	//if (!isGameOver && TisGameActive) {
+ 	function handleKeyUp(e) {
+    	if (!isGameOver3D){ //&& TisGameActive) {
         if (e.key === 'ArrowRight') {
             P1isUpPresse3D = false;
         } else if (e.key === 'ArrowLeft') {
             P1isDownPressed3D = false;
         }
-    //}
+        }
 	}
  	
  	document.addEventListener('keydown', handleKeyDown);
@@ -244,20 +335,55 @@ async function create3DPong(options = {}) {
     
 
     // Start game button
-    document.getElementById('start3DGameBtn').addEventListener('click', () => {
+    document.getElementById('start3DGameBtn').addEventListener('click', async() => {
         if (!is3DGameInitialized) {
-            is3DGameInitialized = true;
-            if (typeof onGameStart === 'function') {
-                onGameStart();
+            console.log('Start game button clicked');
+            try {
+                console.log('Sending request to increment games_played');
+                const response = await fetch('http://localhost:8000/api/user/increment_games_played/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to increment games played');
+                }
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                is3DGameInitialized = true;
+                isGameActive3D = true;
+                hasIncrementedLoss = false;
+                isGameOver3D = false;
+                document.getElementById('start3DGameBtn').style.display = 'none';
+                animationFrameId = requestAnimationFrame(gameLoop);
+                //animationFrameId = requestAnimationFrame(updateGame);
+                if (typeof onGameStart === 'function') {
+                    onGameStart();
+                }
+            } catch (error) {
+                console.error('Error starting game:', error);
+                alert('Failed to start the game. Please try again.');
             }
-            requestAnimationFrame(updateGame);
+        } else {
+            console.log('Game already active, ignoring click');
         }
+            
     });
 
     // Cleanup function
     function cleanup3DGame() {
         is3DGameInitialized = false;
         gameTab.innerHTML = '';
+    }
+
+    function gameLoop() {
+        if (!is3DGameInitialized || !isGameActive3D) return;
+        updateGame();
+        //drawGame();
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     function AIMovement()
@@ -297,12 +423,14 @@ async function create3DPong(options = {}) {
         //     Math.min(hBoard / 2 - paddleWidth / 2, aiPaddle.position.y));
         
         
-        aiPaddle.position.y = Math.max( (-hBoard / 2) + paddleWidth * 2, 
-                            Math.min((hBoard / 2) - paddleWidth * 2, aiPaddle.position.y));
+        aiPaddle.position.y = Math.max( (-hBoard) + paddleWidth * 2, 
+                            Math.min((hBoard) - paddleWidth * 2, aiPaddle.position.y));
     }
 
+    //animate();
     return cleanup3DGame;
 }
+
 
 // Global access to the 3D Pong game initialization
 window.init3DPong = function(options = {}) {
