@@ -73,15 +73,15 @@ async function create3DPong(options = {}) {
     //const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff });
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const glowingMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff, // Couleur principale (blanche)
-        emissive: 0xffffff, // Couleur d'émission (glow)
-        emissiveIntensity: 1.0, // Intensité de la lumière
+        color: 0xffffff,
+        emissive: 0xffffff,
+        emissiveIntensity: 1.0,
       });
 
     
     ///ligne pointiller/    
     const lineMaterial = new THREE.LineDashedMaterial({
-        color: 0xffffff,
+        color: 0xaaaaaa,
         dashSize: 0.5,
         gapSize: 0.3,
     });
@@ -232,10 +232,10 @@ async function create3DPong(options = {}) {
             resetBall();
         }
 
-        if (playerScore === 1 || aiScore === 1) {
+        if (playerScore === 3 || aiScore === 3) {
             isGameOver3D = true;
             isGameActive3D = false;
-            const playerWon = playerScore === 1;
+            const playerWon = playerScore === 3;
             await updateWinLossCount(playerWon);
             setTimeout(() => {
                 alert(playerWon ? "You win!" : "AI wins!");
@@ -293,9 +293,14 @@ async function create3DPong(options = {}) {
     
     function resetBall() {
         ball.position.set(0, 0, 0);
-        ballSpeedX = -ballSpeedX;
-        ballSpeedY = (Math.random() - 0.5) * 0.1;
-
+        //ballSpeedX = -ballSpeedX;
+        //ballSpeedY = (Math.random() - 0.5) * 0.1;
+        //ballSpeedY = speed3D * (Math.random() * 2 - 0.5);
+        //ballSpeedX = (Math.random() - 0.5) * 0.5;
+        //ballSpeedY = 0.05;
+        ballSpeedX = (Math.random() > 0.5 ? 0.1 : -0.1);
+        angle = (Math.random() - 0.5) * Math.PI / 2;
+        ballSpeedY = Math.tan(angle) * ballSpeedX;// Math.abs(ballSpeedX);
         updateScore();
     }
     
