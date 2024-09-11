@@ -1,16 +1,15 @@
-from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
-from django.core.cache import cache
-from django.db.models import F
-from django.http import JsonResponse
-import logging
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
 from .serializers import UserSerializer
-from .utils import send_otp
+from .leaderboard import LeaderboardView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.http import JsonResponse
+from django.db.models import F
+from django.contrib.auth import get_user_model
+import logging
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -35,34 +34,12 @@ class SignInView(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
-            if user.enable_2fa:
-                otp = send_otp(request, user.email)
-                cache.set(f'otp_{user.username}', otp, timeout=60)
-                return Response({'message': 'OTP has been sent to your registered email.'})
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             })
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-class VerifyOTPView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        username = request.data.get('username')
-        otp = request.data.get('otp')
-        cached_otp = cache.get(f'otp_{username}')
-        if cached_otp and cached_otp == otp:
-            user = User.objects.get(username=username)
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
-        return Response({'error': 'Invalid OTP'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 
 class UserDetailView(APIView):
     # permission_classes = [IsAuthenticated]

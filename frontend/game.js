@@ -27,7 +27,6 @@ async function createGame(options = {}) {
         <button id="startGameBtn" class="btn btn-success mt-3">Start Game</button>
     `;
 
-
     // Create canvas
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -154,7 +153,7 @@ async function createGame(options = {}) {
             await updateWinLossCount(playerWon);
             setTimeout(() => {
                 alert(playerWon ? "You win!" : "AI wins!");
-                player.s$core = ai.score = 0;
+                player.score = ai.score = 0;
                 resetBall();
                 isGameOver = false;
                 isGameInitialized = false;

@@ -29,13 +29,11 @@
         tabContents.forEach(tab => tab.style.display = 'none');
 
         // Show the selected tab content
-        console.log("Emeraude : ", tabId);
         const selectedTab = document.getElementById(tabId);
-        console.log("Jaspe 1: " , selectedTab);
         if (selectedTab) {
             selectedTab.style.display = 'block';
         }
-        
+
         // Update active state in navigation
         const navButtons = document.querySelectorAll('.nav-link');
         navButtons.forEach(button => button.classList.remove('active'));
@@ -48,9 +46,8 @@
         if (tabId === 'home' && typeof initHome === 'function') initHome();
         else if (tabId === 'game' && typeof initGame === 'function') initGame();
         else if (tabId === 'user' && typeof initUser === 'function') initUser();
+        else if (tabId === 'leaderboard' && typeof initLeaderBoard === 'function') initLeaderBoard();
 		else if (tabId === 'tournament' && typeof initTournament === 'function') initTournament();
-		else if (tabId === '3d_pong' && typeof create3DPong === 'function') create3DPong();
-        // else if (tabId === 'test' && typeof initTest === 'function') initTest();
         
         if (pushState) {
             // Update the URL and add to history
@@ -58,7 +55,6 @@
             tabHistory.push(tabId);
             currentTabIndex = tabHistory.length - 1;
         }
-        console.log("Jaspe 2: " , selectedTab);
     }
 
     function handlePopState(event) {

@@ -18,26 +18,7 @@
         .modal-backdrop + .modal-backdrop {
             opacity: 0;
         }
-        
-        @font-face {
-        font-family: 'ScoreFont';
-        src: url('m_font/RideTheFader-1XKg.ttf') format('truetype');
-        font-weight: normal;
-        font-style: normal;
-    }
-
     </style>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="Three3D/EffectComposer.js" type="module"></script>
-    <script src="Three3D/RenderPass.js" type="module"></script>
-    <script src="Three3D/UnrealBloomPass.js" type="module"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -47,7 +28,6 @@
                 <a class="nav-link" id="homeBtn" href="#">Home</a>
                 <a class="nav-link" id="gameBtn" href="#">Game</a>
                 <a class="nav-link" id="userBtn" href="#">User</a>
-                <a class="nav-link" id="tournamentBtn" href="#">Tournament</a>
                 <span class="nav-link" id="welcomeMessage"></span>
                 <i class="fas fa-sign-out-alt" id="signOutBtn" title="Sign Out"></i>
             </div>
@@ -59,8 +39,7 @@
         <div id="game" class="tab-content"></div>
         <div id="user" class="tab-content"></div>
         <div id="tournament" class="tab-content"></div>
-        <div id="3d_pong" class="tab-content"></div>
-        <!-- <div id="test" class="tab-content"></div> -->
+        <div id="leaderboard" class="tab-content"></div>
     </div>
 
     <!-- Auth Modal -->
@@ -107,10 +86,6 @@
                                     <label for="signupPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="signupPassword" required>
                                 </div>
-                                <div class="mb-3 form-check">
-                                    <label class="form-check-label" for="enable2FA">Enable 2FA</label>
-                                    <input type="checkbox" class="form-check-input" id="enable2FA">
-                                </div>
                                 <button type="submit" class="btn btn-primary">Sign Up</button>
                             </form>
                         </div>
@@ -120,37 +95,13 @@
         </div>
     </div>
 
-    <!-- OTP Modal -->
-    <div class="modal fade" id="otpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="otpModalLabel">Enter OTP</h5>
-                </div>
-                <div class="modal-body">
-                    <form id="otpForm">
-                        <div class="mb-3">
-                            <label for="otpInput" class="form-label">OTP</label>
-                            <input type="text" class="form-control" id="otpCode" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Verify OTP</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- <script> src="Three3D/EffectComposer.js" </script>
-    <script> src="Three3D/RenderPass.js" </script>
-    <script> src="Three3D/UnrealBloomPass.js" </script> -->
     <script src="auth.js"></script>
     <script src="main.js"></script>
     <script src="home.js"></script>
     <script src="game.js"></script>
     <script src="user.js"></script>
     <script src="tournament.js"></script>
-    <script src="3d_pong.js"></script>
-    <!-- <script src="test.js"></script> -->
+    <script src="leaderboard.js"></script>
 </body>
 </html>

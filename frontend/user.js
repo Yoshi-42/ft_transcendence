@@ -42,7 +42,7 @@ function initUser() {
                 </ul>
             </div>
         </div>
-    `;
+`;
 
     loadUserInfo();
     document.getElementById('userForm').addEventListener('submit', updateProfile);

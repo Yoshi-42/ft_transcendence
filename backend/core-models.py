@@ -5,7 +5,6 @@ class CustomUser(AbstractUser):
     games_played = models.IntegerField(null=True, default=None)
     wins = models.IntegerField(null=True, default=None)
     losses = models.IntegerField(null=True, default=None)
-    enable_2fa = models.BooleanField(null=False, default=False)
 
     groups = models.ManyToManyField(
         'auth.Group',
