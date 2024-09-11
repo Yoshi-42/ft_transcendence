@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView
+from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView, LeaderboardView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -12,5 +12,6 @@ urlpatterns = [
     path('user/increment_losses/', IncrementLossesView.as_view(), name='increment_losses'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), #peut-etre qu'il faudra degager le api/
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp')
+    path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
+    path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
 ]

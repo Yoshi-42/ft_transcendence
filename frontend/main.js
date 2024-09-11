@@ -50,6 +50,7 @@
         else if (tabId === 'user' && typeof initUser === 'function') initUser();
 		else if (tabId === 'tournament' && typeof initTournament === 'function') initTournament();
 		else if (tabId === '3d_pong' && typeof create3DPong === 'function') create3DPong();
+        else if (tabId === 'leaderboard' && typeof initLeaderBoard === 'function') initLeaderBoard();
         // else if (tabId === 'test' && typeof initTest === 'function') initTest();
         
         if (pushState) {

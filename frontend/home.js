@@ -14,7 +14,7 @@ function initHome() {
             <div class="col-md-4">
                 <h3>Leaderboard</h3>
                 <p>Check out the top players and see where you rank.</p>
-                <button class="btn btn-secondary">View Leaderboard</button>
+                <button id="leaderboard_btn" class="btn btn-secondary">View Leaderboard</button>
             </div>
             <div class="col-md-4">
                 <h3>Tournament</h3>
@@ -41,6 +41,14 @@ function initHome() {
             console.error("initTournament function is not defined");
         }
         //initThreeJS();
+    });
+
+    document.getElementById('leaderboard_btn').addEventListener('click', async () => {
+        if (typeof initLeaderBoard === 'function') {
+            showTab('leaderboard');
+        } else {
+            console.error("initLeaderBoard function is not defined");
+        }
     });
     
     // document.getElementsById('test').addEventListener('click',  () => {

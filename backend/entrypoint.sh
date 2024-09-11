@@ -28,6 +28,7 @@ cp urls.py /app/transcendence/urls.py
 cp core-health_check.py /app/core/health_check.py
 cp core-models.py /app/core/models.py
 cp core-serializers.py /app/core/serializers.py
+cp core-leaderboard.py /app/core/leaderboard.py
 cp core-views.py /app/core/views.py
 cp core-urls.py /app/core/urls.py
 cp core-admin.py /app/core/admin.py
