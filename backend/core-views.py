@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate ,get_user_model, authenticate, logi
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import F
+from .leaderboard import LeaderboardView
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -73,7 +74,6 @@ class FortyTwoCallbackView(APIView):
         headers = {
             'Authorization': f'Bearer {access_token}'
         }
-        print(request)
         user_info_response = requests.get(user_info_url, headers=headers)
         user_info = user_info_response.json()
         print("***************************************************************\n")
