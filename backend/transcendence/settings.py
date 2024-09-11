@@ -11,8 +11,7 @@ DEBUG = 'True'
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
-    #'django.contrib.admin',
-    'django.contrib.sites',  # Pour allauth
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -22,11 +21,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'core',
-    # 'allauth',
-    # 'allauth.account',
-    # 'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.oauth2',
-    # 'allauth.socialaccount.providers.42',  # Correction pour le provider 42
 ]
 
 MIDDLEWARE = [
@@ -66,7 +60,7 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': 'ft_postgre',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
@@ -107,3 +101,23 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=180),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#        'django': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#         'channels': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#         },
+#     },
+# }

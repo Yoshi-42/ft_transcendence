@@ -1,25 +1,24 @@
-from django.conf import settings
-from django.contrib.auth import authenticate ,get_user_model, authenticate, login
-from django.contrib.auth.models import User
-from django.core.cache import cache
-from django.db.models import F
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.conf import settings
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from .serializers import UserSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.http import JsonResponse
+from django.db.models import F
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 import logging
-from .models import CustomUser
-from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.views import APIView
-from rest_framework import status
-import requests
-from .serializers import UserSerializer
-from .utils import send_otp
-from urllib.parse import urlencode
-import urllib.parse
 import os
+import urllib.parse
+import requests
+from django.shortcuts import redirect
+from urllib.parse import urlencode
+from .models import CustomUser
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -73,7 +72,7 @@ class FortyTwoCallbackView(APIView):
         headers = {
             'Authorization': f'Bearer {access_token}'
         }
-        print(request)
+
         user_info_response = requests.get(user_info_url, headers=headers)
         user_info = user_info_response.json()
         print("***************************************************************\n")
@@ -125,12 +124,13 @@ class FortyTwoCallbackView(APIView):
             # user.last_name = last_name
             user.save()
             refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'username': user.username,
-            })
 
+
+            user_detail_url = reverse('user_detail', kwargs={'username': user.username})
+            query_params = f'?refresh={refresh}&access={refresh.access_token}&username={user.username}'
+        return redirect(f'{user_detail_url}{query_params}')
+        # else:
+        #     return Response(serializer.errors, status=400)
 
     # response = redirect(reverse('user_detail'))  # Remplacez 'home' par le nom de votre vue d'accueil
     # response.set_cookie('refresh', str(refresh))
@@ -165,34 +165,12 @@ class SignInView(APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
-            if user.enable_2fa:
-                otp = send_otp(request, user.email)
-                cache.set(f'otp_{user.username}', otp, timeout=60)
-                return Response({'message': 'OTP has been sent to your registered email.'})
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             })
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-class VerifyOTPView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        username = request.data.get('username')
-        otp = request.data.get('otp')
-        cached_otp = cache.get(f'otp_{username}')
-        if cached_otp and cached_otp == otp:
-            user = User.objects.get(username=username)
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
-        return Response({'error': 'Invalid OTP'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 
 class UserDetailView(APIView):
     # permission_classes = [IsAuthenticated]

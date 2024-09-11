@@ -19,6 +19,7 @@ const Auth = (function() {
 
     function initModal() {
         const modalElement = document.getElementById('authModal');
+        console.log("Initation de la modale et test du log")
         if (modalElement) {
             authModal = new bootstrap.Modal(modalElement, {
                 backdrop: 'static',
@@ -185,6 +186,24 @@ const Auth = (function() {
             throw error;
         }
     }
+    // async function oauthSignUP()
+    // {
+    //     const response = await fetch('http://localhost:8000/api/42/login/', {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         }
+    //     });
+    //     console.log(response);
+    //     if (response.ok)
+    //     {
+    //         console.log("OK CHEPAKOI");
+    //         return;
+    //     }
+    //     else
+    //         console.log("crot");
+
+    // }
 
     function signOut() {
         authToken = null;
@@ -203,6 +222,44 @@ const Auth = (function() {
         window.location.href = '/';
     }
 
+    async function oauthSignUP() {
+    window.location.href = 'http://localhost:8000/api/42/login/';
+}
+
+async function handleOAuthCallback(code) {
+    try {
+        console.log("DEbut de la fonction handleoauthcallback")
+        const response = await fetch('http://localhost:8000/api/42/callback/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code: code }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('authToken', data.access);
+            localStorage.setItem('refreshToken', data.refresh);
+            currentUser = data.username;
+            localStorage.setItem('currentUser', currentUser);
+            console.log('Access token:', data.access);
+            console.log('Refresh token:', data.refresh);
+            console.log('Username:', data.username);
+
+            hideAuthModal();
+            window.location.href = '/api/user_detail/'
+            // Redirection ou mise à jour de l'interface utilisateur ici
+        } else {
+            console.log("Response pas ok du tout du tout")
+            throw new Error('Failed to authenticate');
+        }
+    } catch (error) {
+        console.error('Error during OAuth callback:', error);
+    }
+}
+
+
     return {
         init,
         isAuthenticated,
@@ -214,13 +271,22 @@ const Auth = (function() {
         signUp,
         verifyOtp,
         signOut,
-        redirectToRoot
+        redirectToRoot,
+        oauthSignUP,
+        handleOAuthCallback,
     };
+
 })();
 
 // Set up event listeners for auth forms
 document.addEventListener('DOMContentLoaded', () => {
     Auth.init();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code) {
+        Auth.handleOAuthCallback(code);
+    }
 
     document.getElementById('signinForm').addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -275,4 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+
+    document.getElementById('oauth42Button').addEventListener('click', () => {
+        Auth.oauthSignUP();
+    });
+    
 });

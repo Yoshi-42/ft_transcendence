@@ -112,6 +112,15 @@
                                     <label class="form-check-label" for="enable2FA">Enable 2FA</label>
                                     <input type="checkbox" class="form-check-input" id="enable2FA">
                                 </div>
+                                <body>
+                                    <button id="oauth42Button">Login with 42</button>
+
+                                    <script type="text/javascript">
+                                        document.getElementById('oauth42Button').addEventListener('click', () => {
+                                            window.location.href = 'http://localhost:8000/api/42/login/';
+                                        });
+                                    </script>
+                                </body>
                                 <button type="submit" class="btn btn-primary">Sign Up</button>
                             </form>
                         </div>

@@ -18,4 +18,8 @@ docker volume prune -f
 echo "Removing backend/core, backend/transcendence, and backend/manage.py..."
 sudo rm -rf backend/core backend/transcendence backend/manage.py
 
+docker volume rm ft_transcendence_db_data
+
+docker system prune -a
+
 echo "All tasks completed."

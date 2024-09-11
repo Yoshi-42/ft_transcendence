@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView, LeaderboardView, OAuthLogin, FortyTwoCallbackView, FortyTwoLoginView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, OAuthLogin, FortyTwoCallbackView, FortyTwoLoginView
 
 urlpatterns = [
     path('signup/', SignUpView.as_view(), name='signup'),
@@ -10,10 +9,8 @@ urlpatterns = [
     path('user/increment_games_played/', IncrementGamesPlayedView.as_view(), name='increment_games_played'),
     path('user/increment_wins/', IncrementWinsView.as_view(), name='increment_wins'),
     path('user/increment_losses/', IncrementLossesView.as_view(), name='increment_losses'),
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), #peut-etre qu'il faudra degager le api/
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
-    path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
+#     path('oauth/login/42/', OAuthLogin.as_view(), name='oauth_login'),
+#     path('auth/callback/', views.oauth_callback, name='oauth_callback'),
     path('42/login/', FortyTwoLoginView.as_view(), name='forty_two_login'),
     path('42/callback/', FortyTwoCallbackView.as_view(), name='forty_two_callback'),
 ]
