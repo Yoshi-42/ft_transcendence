@@ -12,8 +12,9 @@ let widthBoard = 15;
 
 let speed3D = 0.05;
 
-async function create3DPong(options = {}) {
 
+async function create3DPong(options = {}) {
+    
     if (is3DGameInitialized) {
         console.warn("3D game already running.");
         return null;
@@ -253,8 +254,8 @@ async function create3DPong(options = {}) {
         AIMovement()
 
         // Render scene
-        renderer.render(scene, camera);
-
+        //renderer.render(scene, camera);
+        composer.render();
         // if (is3DGameInitialized) {
         //     requestAnimationFrame(updateGame);
         // }
