@@ -11,79 +11,142 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.http import JsonResponse
 from django.db.models import F
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 import logging
 import os
 import urllib.parse
 import requests
+from django.shortcuts import redirect
+from urllib.parse import urlencode
+from .models import CustomUser
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
 
-def forty_two_login(request):
-    base_url = "https://api.intra.42.fr/oauth/authorize"
-    params = {
-        'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
-        'redirect_uri': 'http://localhost/api/42/callback/',
-        'response_type': 'code',
-    }
-    url = f"{base_url}?{urllib.parse.urlencode(params)}"
-    print(f"URL = {url}")
-    return redirect(url)
+class FortyTwoLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        base_url = "https://api.intra.42.fr/oauth/authorize"
+        params = {
+            'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
+            'redirect_uri': 'http://localhost:8000/api/42/callback/',
+            'response_type': 'code',
+        }
+        url = f"{base_url}?{urllib.parse.urlencode(params)}"
+        print(url)
+        return redirect(url)
+
+class FortyTwoCallbackView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.GET.get('code')
+        return self.handle_callback(code)
+
+    def post(self, request):
+        code = request.data.get('code')
+        return self.handle_callback(code)
+
+    def handle_callback(self, code):
+        token_url = "https://api.intra.42.fr/oauth/token"
+        token_data = {
+            'grant_type': 'authorization_code',
+            'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
+            'client_secret': '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',
+            'code': code,
+            'redirect_uri': 'http://localhost:8000/api/42/callback/',
+        }
+        print("Token data:", token_data)
+
+        token_response = requests.post(token_url, data=token_data)
+        print("Token response status:", token_response.status_code)
+        print("Token response body:", token_response.json())
+
+        token_json = token_response.json()
+        access_token = token_json.get('access_token')
+
+        user_info_url = "https://api.intra.42.fr/v2/me"
+        headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+        print(request)
+        user_info_response = requests.get(user_info_url, headers=headers)
+        user_info = user_info_response.json()
+        print("***************************************************************\n")
+        print(user_info)
+
+        username = user_info['login']
+        email = user_info['email']
+        first_name = user_info['first_name']
+        last_name = user_info['last_name']
+
+        user_data = {
+            'username': username,
+            'email': email,
+            # 'first_name': first_name,
+            # 'last_name': last_name,
+            'password': None  # Le sérialiseur exige un champ de mot de passe
+        }
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
+        print(user_data)
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
+
+        # serializer = UserSerializer(data=user_data)
+        # print(f"Serializer valid ? = {serializer.is_valid()}")
+
+        # if serializer.is_valid():
+        user, created = CustomUser.objects.get_or_create(username=username)
+        print(f"User = \n{user}\nType de User = {type(user)}\n")
+        print(f"User = \n{created}\nType de created = {type(created)}")
 
 
-# views.py
+        if user:
+            print("Ben on est laaAAAAAAAAAAAAAAAAAAAAA")
+            user.email = email
+            # user.first_name = first_name
+            # user.last_name = last_name
+            user.set_unusable_password()
+            user.save()
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'username': user.username,
+            })
 
-def forty_two_callback(request):
-    code = request.GET.get('code')
-    token_url = "https://api.intra.42.fr/oauth/token"
-    token_data = {
-        'grant_type': 'authorization_code',
-        'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
-        'client_secret': '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',
-        'code': code,
-        'redirect_uri': 'http://localhost/api/42/callback/',
-    }
-    token_response = requests.post(token_url, data=token_data)
-    token_json = token_response.json()
-    access_token = token_json.get('access_token')
-
-    user_info_url = "https://api.intra.42.fr/v2/me"
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
-    user_info_response = requests.get(user_info_url, headers=headers)
-    user_info = user_info_response.json()
-
-    # Extraire les informations nécessaires de l'utilisateur
-    username = user_info['login']
-    email = user_info['email']
-    first_name = user_info['first_name']
-    last_name = user_info['last_name']
-
-    # Vérifier si l'utilisateur existe déjà, sinon le créer
-    user, created = User.objects.get_or_create(username=username, defaults={
-        'email': email,
-        'first_name': first_name,
-        'last_name': last_name,
-    })
-
-    if created:
-        user.set_unusable_password()
-        user.save()
-
-    # Connecter l'utilisateur
-    login(request, user)
-
-    return redirect('home')  # Rediriger vers la page d'accueil ou une autre page appropriée
+        else:
+            print("Utilisateur existant, mise à jour des informations.")
+            user.email = email
+            # user.first_name = first_name
+            # user.last_name = last_name
+            user.save()
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'username': user.username,
+            })
 
 
+    # response = redirect(reverse('user_detail'))  # Remplacez 'home' par le nom de votre vue d'accueil
+    # response.set_cookie('refresh', str(refresh))
+    # response.set_cookie('access', str(refresh.access_token))
+    # response.set_cookie('username', user.username)
 
+    
+        # else:
+        #     return Response(serializer.errors, status=400)
 class SignUpView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         serializer = UserSerializer(data=request.data)
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
+        print(request.data)
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
+
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
@@ -92,6 +155,7 @@ class SignUpView(APIView):
                 'access': str(refresh.access_token),
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SignInView(APIView):
     permission_classes = [AllowAny]
@@ -218,9 +282,6 @@ class IncrementLossesView(APIView):
             logger.error(f"Error incrementing losses for user {user.username}: {str(e)}")
             return Response({'status': 'error', 'message': 'Failed to increment losses'}, status=500)
         
-import requests
-from django.shortcuts import redirect
-from urllib.parse import urlencode
 
 class OAuthLogin(APIView):
     permission_classes = [AllowAny]
