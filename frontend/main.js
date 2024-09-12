@@ -62,6 +62,30 @@
         console.log("Jaspe 2: " , selectedTab);
     }
 
+
+    function parseTokensFromUrl(url) {
+        // Création d'une instance URL à partir de l'URL fournie
+        const parsedUrl = new URL(url);
+        
+        // Récupération de la partie hash (après le #)
+        const hash = parsedUrl.hash.substring(1); // Enlever le #
+
+        // Création d'un objet URLSearchParams à partir du hash
+        const params = new URLSearchParams(hash);
+
+        // Extraction des tokens
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const username = params.get('username');
+
+        return {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            username: username,
+        };
+    }
+
+
     function handlePopState(event) {
         if (event.state && event.state.tabId) {
             showTab(event.state.tabId, false);
@@ -72,6 +96,18 @@
     }
 
     function initApp() {
+        let currentUrl = window.location.href;
+        console.log(currentUrl);
+        let dico = parseTokensFromUrl(currentUrl);
+        console.log(dico);
+        if (dico.access_token && dico.refresh_token && dico.username)
+        {
+            console.log("Scope de verification init");
+            localStorage.setItem('authToken', dico.access_token);
+            localStorage.setItem('refreshToken', dico.refresh_token);
+            localStorage.setItem('currentUser', dico.username);
+        }
+
         // Initialize authentication
         Auth.init();
 

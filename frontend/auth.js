@@ -37,6 +37,8 @@ const Auth = (function() {
     }
 
     function isAuthenticated() {
+
+        // si ya pas de token je verifie et si ya cookie
         return !!authToken;
     }
 
@@ -99,6 +101,7 @@ const Auth = (function() {
                 if (data.message === 'OTP has been sent to your registered email.') {
                     tempUsername = username;
                     // Rediriger vers la page de saisie de l'OTP ou afficher une modal
+                    hideAuthModal();
                     showOtpModal();
                     return;
                 }
@@ -175,7 +178,7 @@ const Auth = (function() {
                 console.log('Access token:', authToken);  // Log the access token
                 console.log('Refresh token:', refreshToken);  // Log the refresh token
                 hideOtpModal();
-                hideAuthModal();
+                // hideAuthModal();
                 updateUI();
                 return true;
             } else {
@@ -236,7 +239,7 @@ async function handleOAuthCallback(code) {
             },
             body: JSON.stringify({ code: code }),
         });
-
+        console.log("DEbut de la fonction handleoauthcallback")
         if (response.ok) {
             const data = await response.json();
             localStorage.setItem('authToken', data.access);
@@ -282,11 +285,6 @@ async function handleOAuthCallback(code) {
 document.addEventListener('DOMContentLoaded', () => {
     Auth.init();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    if (code) {
-        Auth.handleOAuthCallback(code);
-    }
 
     document.getElementById('signinForm').addEventListener('submit', async (event) => {
         event.preventDefault();

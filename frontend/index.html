@@ -119,6 +119,26 @@
                                         document.getElementById('oauth42Button').addEventListener('click', () => {
                                             window.location.href = 'http://localhost:8000/api/42/login/';
                                         });
+                                        function getQueryParams() {
+                                            const params = {};
+                                            window.location.search.substring(1).split('&').forEach(pair => {
+                                                const [key, value] = pair.split('=');
+                                                params[decodeURIComponent(key)] = decodeURIComponent(value);
+                                            });
+                                            return params;
+                                        }
+
+                                        document.addEventListener('DOMContentLoaded', () => {
+                                            const params = getQueryParams();
+                                            if (params.access) {
+                                                localStorage.setItem('access_token', params.access);
+                                                localStorage.setItem('refresh_token', params.refresh);
+                                                localStorage.setItem('username', params.username);
+                                                // Redirige ou affiche une page d'accueil
+                                                alert('Connexion réussie !');
+                                                // window.location.href = '/';
+                                            }
+                                        });
                                     </script>
                                 </body>
                                 <button type="submit" class="btn btn-primary">Sign Up</button>

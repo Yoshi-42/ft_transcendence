@@ -5,6 +5,7 @@ from django.core.cache import cache
 from django.db.models import F
 from .leaderboard import LeaderboardView
 from django.http import JsonResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 import logging
@@ -61,12 +62,8 @@ class FortyTwoCallbackView(APIView):
             'code': code,
             'redirect_uri': 'http://localhost:8000/api/42/callback/',
         }
-        print("Token data:", token_data)
 
         token_response = requests.post(token_url, data=token_data)
-        print("Token response status:", token_response.status_code)
-        print("Token response body:", token_response.json())
-
         token_json = token_response.json()
         access_token = token_json.get('access_token')
 
@@ -76,67 +73,43 @@ class FortyTwoCallbackView(APIView):
         }
         user_info_response = requests.get(user_info_url, headers=headers)
         user_info = user_info_response.json()
-        print("***************************************************************\n")
-        print(user_info)
 
         username = user_info['login']
         email = user_info['email']
         first_name = user_info['first_name']
         last_name = user_info['last_name']
 
-        user_data = {
-            'username': username,
-            'email': email,
-            # 'first_name': first_name,
-            # 'last_name': last_name,
-            'password': None  # Le sérialiseur exige un champ de mot de passe
-        }
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
-        print(user_data)
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
-
-        # serializer = UserSerializer(data=user_data)
-        # print(f"Serializer valid ? = {serializer.is_valid()}")
-
-        # if serializer.is_valid():
         user, created = CustomUser.objects.get_or_create(username=username)
-        print(f"User = \n{user}\nType de User = {type(user)}\n")
-        print(f"User = \n{created}\nType de created = {type(created)}")
-
-
-        if user:
-            print("Ben on est laaAAAAAAAAAAAAAAAAAAAAA")
+        
+        if created:
             user.email = email
-            # user.first_name = first_name
-            # user.last_name = last_name
+            user.first_name = first_name
+            user.last_name = last_name
             user.set_unusable_password()
             user.save()
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'username': user.username,
-            })
+        
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
 
-        else:
-            print("Utilisateur existant, mise à jour des informations.")
-            user.email = email
-            # user.first_name = first_name
-            # user.last_name = last_name
-            user.save()
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'username': user.username,
-            })
-
-
-    # response = redirect(reverse('user_detail'))  # Remplacez 'home' par le nom de votre vue d'accueil
-    # response.set_cookie('refresh', str(refresh))
-    # response.set_cookie('access', str(refresh.access_token))
-    # response.set_cookie('username', user.username)
-
+        # response = HttpResponseRedirect('http://0.0.0.0')
+        # response.set_cookie('access_token', access_token, httponly=True)
+        # response.set_cookie('refresh_token', refresh_token, httponly=True)
+        # response = redirect('http://0.0.0.0/#' +
+        # querystring.stringify({
+        #     access_token: access_token,
+        #     refresh_token: refresh_token
+        # })
+    # Construct the query string
+        query_params = {
+        'access_token': access_token,
+        'refresh_token': refresh_token,
+        'username': username,
+        }
+    # Use urlencode to build the query string
+        query_string = urlencode(query_params)
+    # Redirect to the URL with the query string
+        return redirect('http://0.0.0.0/#' + query_string)
     
         # else:
         #     return Response(serializer.errors, status=400)
