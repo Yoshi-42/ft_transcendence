@@ -20,6 +20,10 @@ function initUser() {
                             Please provide a valid email.
                         </div>
                     </div>
+                    <div class="mb-3 form-check">
+                        <label class="form-check-label" for="enable2FA">Enable 2FA</label>
+                        <input type="checkbox" class="form-check-input" id="enable_2fa">
+                    </div>
                     <button type="submit" class="btn btn-primary">Update Profile</button>
                 </form>
                 <div id="updateMessage" class="mt-3"></div>
@@ -66,6 +70,7 @@ async function loadUserInfo() {
             document.getElementById('gamesPlayed').textContent = userData.games_played || '0';
             document.getElementById('wins').textContent = userData.wins || '0';
             document.getElementById('losses').textContent = userData.losses || '0';
+            document.getElementById('enable_2fa').checked = userData.enable_2fa;
         } else {
             throw new Error('Failed to load user data');
         }
@@ -86,6 +91,7 @@ async function updateProfile(event) {
 
     const username = document.getElementById('username').value;
     const email = document.getElementById('email').value;
+    const enable_2fa = document.getElementById('enable_2fa').checked;
 
     try {
         const response = await fetch('http://localhost:8000/api/user/update/', {
@@ -94,7 +100,7 @@ async function updateProfile(event) {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, email }),
+            body: JSON.stringify({ username, email, enable_2fa }),
         });
 
         if (response.ok) {
