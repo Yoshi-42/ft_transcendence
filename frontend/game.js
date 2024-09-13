@@ -152,6 +152,7 @@ async function createGame(options = {}) {
             isGameActive = false;
             const playerWon = player.score === 5;
             await updateWinLossCount(playerWon);
+            await recordMatchResult(player.score, ai.score);
             setTimeout(() => {
                 alert(playerWon ? "You win!" : "AI wins!");
                 player.s$core = ai.score = 0;
@@ -219,7 +220,7 @@ async function createGame(options = {}) {
 
             ai.lastMoveTime = currentTime;
         }
-        
+
         // Move towards the target position with a delay
         if (currentTime - ai.lastMoveTime >= aiReactionDelay) {
             if (Math.abs(ai.y - ai.targetY) > aiMovementSpeed) {
@@ -228,7 +229,7 @@ async function createGame(options = {}) {
                 ai.y = ai.targetY; // Snap to target if very close
             }
         }
-        
+
         // Ensure AI paddle stays within the canvas
         ai.y = Math.max(0, Math.min(canvas.height - paddleHeight, ai.y));
     }
@@ -287,7 +288,7 @@ async function createGame(options = {}) {
                 }
                 const data = await response.json();
                 console.log('Response data:', data);
-                
+
                 isGameInitialized = true;
                 isGameActive = true;
                 hasIncrementedLoss = false;
@@ -324,6 +325,30 @@ async function createGame(options = {}) {
 
     // Return the cleanup function
     return cleanup;
+}
+
+async function recordMatchResult(playerScore, aiScore) {
+    try {
+        const response = await fetch('http://localhost:8000/api/record-match/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                opponent: 'AI',
+                user_score: playerScore,
+                opponent_score: aiScore,
+            }),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to record match result');
+        }
+        const data = await response.json();
+        console.log('Match recorded successfully:', data);
+    } catch (error) {
+        console.error('Error recording match result:', error);
+    }
 }
 
 // Make sure initGame is available globally

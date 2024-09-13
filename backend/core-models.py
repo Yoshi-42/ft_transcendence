@@ -26,3 +26,17 @@ class CustomUser(AbstractUser):
         related_name='customuser_set',
         related_query_name='customuser',
     )
+
+from django.db import models
+from django.conf import settings
+
+class MatchHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='matches')
+    opponent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='opponent_matches')
+    user_score = models.IntegerField()
+    opponent_score = models.IntegerField()
+    date = models.DateTimeField(auto_now_add=True)
+    winner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='won_matches')
+
+    def __str__(self):
+        return f"{self.user.username} vs {self.opponent.username} - {self.date.strftime('%Y-%m-%d %H:%M')}"

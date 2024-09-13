@@ -23,6 +23,9 @@ from urllib.parse import urlencode
 import urllib.parse
 import os
 from rest_framework.parsers import MultiPartParser, FormParser
+from .models import MatchHistory
+from django.db import transaction
+from .serializers import MatchHistorySerializer
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -332,3 +335,44 @@ class AvatarUploadView(APIView):
 #             print(f"Default avatar exists: {os.path.exists(default_avatar_path)}")
 
 #         return Response(data)
+
+class MatchHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        matches = MatchHistory.objects.filter(user=request.user).order_by('-date')
+        serializer = MatchHistorySerializer(matches, many=True)
+        return Response(serializer.data)
+
+class RecordMatchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request):
+        user = request.user
+        opponent_username = request.data.get('opponent')
+        user_score = request.data.get('user_score')
+        opponent_score = request.data.get('opponent_score')
+
+        if opponent_username == 'AI':
+            opponent = None
+        else:
+            try:
+                opponent = CustomUser.objects.get(username=opponent_username)
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'Opponent not found'}, status=400)
+
+        # winner = user if user_score > opponent_score else (opponent if opponent else None)
+
+        match = MatchHistory.objects.create(
+            user=user,
+            opponent=opponent,
+            user_score=user_score,
+            opponent_score=opponent_score,
+            # winner=winner
+        )
+
+        serializer = MatchHistorySerializer(match)
+        return Response(serializer.data)
+
+        return Response({'status': 'Match recorded successfully', 'match_id': match.id})

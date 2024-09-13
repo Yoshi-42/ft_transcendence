@@ -35,7 +35,7 @@
         if (selectedTab) {
             selectedTab.style.display = 'block';
         }
-        
+
         // Update active state in navigation
         const navButtons = document.querySelectorAll('.nav-link');
         navButtons.forEach(button => button.classList.remove('active'));
@@ -51,8 +51,9 @@
 		else if (tabId === 'tournament' && typeof initTournament === 'function') initTournament();
 		else if (tabId === '3d_pong' && typeof create3DPong === 'function') create3DPong();
         else if (tabId === 'leaderboard' && typeof initLeaderBoard === 'function') initLeaderBoard();
+        else if (tabId === 'match-history' && typeof initMatchHistory === 'function') initMatchHistory();
         // else if (tabId === 'test' && typeof initTest === 'function') initTest();
-        
+
         if (pushState) {
             // Update the URL and add to history
             history.pushState({ tabId: tabId }, '', `#${tabId}`);
@@ -66,7 +67,7 @@
     function parseTokensFromUrl(url) {
         // Création d'une instance URL à partir de l'URL fournie
         const parsedUrl = new URL(url);
-        
+
         // Récupération de la partie hash (après le #)
         const hash = parsedUrl.hash.substring(1); // Enlever le #
 
@@ -135,8 +136,8 @@
         document.getElementById('signOutBtn').addEventListener('click', () => {
             Auth.signOut();
             // The redirect is now handled in the Auth.signOut() function
-            
-        
+
+
         });
     }
 

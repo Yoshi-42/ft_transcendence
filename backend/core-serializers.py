@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CustomUser
+from .models import MatchHistory
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
@@ -23,3 +24,15 @@ class UserSerializer(serializers.ModelSerializer):
         instance.enable_2fa = validated_data.get('enable_2fa', instance.enable_2fa)
         instance.save()
         return instance
+
+class MatchHistorySerializer(serializers.ModelSerializer):
+    opponent_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MatchHistory
+        fields = ['id', 'opponent_username', 'user_score', 'opponent_score', 'date']
+
+    def get_opponent_username(self, obj):
+        if obj.opponent:
+            return obj.opponent.username
+        return 'AI'  # Cela sera interprété comme 'AI' côté frontend
