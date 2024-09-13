@@ -1,10 +1,28 @@
 function initUser() {
     const userTab = document.getElementById('user');
     userTab.innerHTML = `
+        <style>
+            .avatar-container {
+                width: 200px;
+                height: 200px;
+                overflow: hidden;
+                margin: 0 auto;
+            }
+            .avatar-container img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        </style>
         <h1 class="display-4">User Profile</h1>
         <p class="lead">View and edit your user profile here.</p>
         <div class="row mt-4">
-            <div class="col-md-6">
+            <div class="col-md-3">
+                <div class="avatar-container rounded-circle mb-3">
+                    <img id="userAvatar" alt="User Avatar" class="avatar-image">
+                </div>
+            </div>
+            <div class="col-md-9">
                 <form id="userForm" class="needs-validation" novalidate>
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
@@ -28,6 +46,8 @@ function initUser() {
                 </form>
                 <div id="updateMessage" class="mt-3"></div>
             </div>
+        </div>
+        <div class="row mt-4">
             <div class="col-md-6">
                 <h3>Stats</h3>
                 <ul class="list-group">
@@ -45,22 +65,20 @@ function initUser() {
                     </li>
                 </ul>
             </div>
-        </div>
-        <div class="mt-4">
-            <h3>Avatar</h3>
-            <img id="userAvatar" alt="User Avatar" class="img-thumbnail mb-2" style="width: 150px; height: 150px;">
-            <form id="avatarForm">
-                <div class="mb-3">
-                    <input type="file" class="form-control" id="avatarInput" accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-primary">Upload Avatar</button>
-            </form>
+            <div class="col-md-6">
+                <h3>Update Avatar</h3>
+                <form id="avatarForm">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="avatarInput" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Avatar</button>
+                </form>
+            </div>
         </div>
     `;
 
     loadUserInfo();
     document.getElementById('userForm').addEventListener('submit', updateProfile);
-
     document.getElementById('avatarForm').addEventListener('submit', uploadAvatar);
     loadUserAvatar();
 }
@@ -83,7 +101,6 @@ async function loadUserInfo() {
             document.getElementById('gamesPlayed').textContent = userData.games_played || '0';
             document.getElementById('wins').textContent = userData.wins || '0';
             document.getElementById('losses').textContent = userData.losses || '0';
-            document.getElementById('enable_2fa').checked = userData.enable_2fa;
         } else {
             throw new Error('Failed to load user data');
         }
@@ -104,7 +121,6 @@ async function updateProfile(event) {
 
     const username = document.getElementById('username').value;
     const email = document.getElementById('email').value;
-    const enable_2fa = document.getElementById('enable_2fa').checked;
 
     try {
         const response = await fetch('http://localhost:8000/api/user/update/', {
@@ -113,7 +129,7 @@ async function updateProfile(event) {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, email, enable_2fa }),
+            body: JSON.stringify({ username, email }),
         });
 
         if (response.ok) {
@@ -135,6 +151,7 @@ function showUpdateMessage(message, type) {
         messageElement.innerHTML = '';
     }, 5000);
 }
+
 
 async function loadUserAvatar() {
     const avatarImg = document.getElementById('userAvatar');
