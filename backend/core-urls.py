@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView, LeaderboardView, OAuthLogin, FortyTwoCallbackView, FortyTwoLoginView
+from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView, LeaderboardView, OAuthLogin, FortyTwoCallbackView, FortyTwoLoginView, AvatarUploadView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -16,4 +16,5 @@ urlpatterns = [
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
     path('42/login/', FortyTwoLoginView.as_view(), name='forty_two_login'),
     path('42/callback/', FortyTwoCallbackView.as_view(), name='forty_two_callback'),
+	path('user/upload-avatar/', AvatarUploadView.as_view(), name='upload_avatar'),
 ]

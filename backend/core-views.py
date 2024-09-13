@@ -22,6 +22,7 @@ from .utils import send_otp
 from urllib.parse import urlencode
 import urllib.parse
 import os
+from rest_framework.parsers import MultiPartParser, FormParser
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -80,14 +81,14 @@ class FortyTwoCallbackView(APIView):
         last_name = user_info['last_name']
 
         user, created = CustomUser.objects.get_or_create(username=username)
-        
+
         if created:
             user.email = email
             user.first_name = first_name
             user.last_name = last_name
             user.set_unusable_password()
             user.save()
-        
+
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
@@ -110,7 +111,7 @@ class FortyTwoCallbackView(APIView):
         query_string = urlencode(query_params)
     # Redirect to the URL with the query string
         return redirect('http://0.0.0.0/#' + query_string)
-    
+
         # else:
         #     return Response(serializer.errors, status=400)
 class SignUpView(APIView):
@@ -191,22 +192,22 @@ class IncrementGamesPlayedView(APIView):
         user = request.user
         logger.info(f"POST request received to increment games_played for user {user.username}")
         logger.info(f"Initial games_played value: {user.games_played}")
-        
+
         # Initialize games_played if it's None
         if user.games_played is None:
             user.games_played = 0
             user.save()
             logger.info(f"Initialized games_played to 0 for user {user.username}")
-        
+
         # Increment games_played using update() to avoid race conditions
         updated = User.objects.filter(pk=user.pk).update(games_played=F('games_played') + 1)
         logger.info(f"Update operation affected {updated} row(s)")
-        
+
         # Refresh from db to get the updated value
         user.refresh_from_db()
-        
+
         logger.info(f"Final games_played value: {user.games_played}")
-        
+
         return Response({
             'status': 'games_played incremented',
             'games_played': user.games_played
@@ -277,7 +278,7 @@ class IncrementLossesView(APIView):
         except Exception as e:
             logger.error(f"Error incrementing losses for user {user.username}: {str(e)}")
             return Response({'status': 'error', 'message': 'Failed to increment losses'}, status=500)
-        
+
 
 class OAuthLogin(APIView):
     permission_classes = [AllowAny]
@@ -299,11 +300,35 @@ class OAuthLogin(APIView):
         # return redirect('https://www.google.com')
         except KeyError as e:
             return Response({'error': f'Missing environment variable: {str(e)}'}, status=500)
-        
+
     # def post(self, request):
     #     print("TARTAPASTEK")
     #     return redirect('https://www.google.com')
-    
 
+class AvatarUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
 
+    def post(self, request, *args, **kwargs):
+        if 'avatar' in request.data:
+            user = request.user
+            user.avatar = request.data['avatar']
+            user.save()
+            return Response({'status': 'Avatar updated'}, status=status.HTTP_200_OK)
+        return Response({'status': 'No avatar provided'}, status=status.HTTP_400_BAD_REQUEST)
 
+#Debug function to see if avatar is uploaded
+# class UserDetailView(APIView):
+#     def get(self, request):
+#         user = request.user
+#         serializer = UserSerializer(user)
+#         data = serializer.data
+
+#         if user.avatar:
+#             print(f"Avatar path: {user.avatar.path}")
+#             print(f"Avatar URL: {user.avatar.url}")
+#         else:
+#             default_avatar_path = os.path.join(settings.STATIC_ROOT, 'images', 'default-avatar.png')
+#             print(f"Default avatar path: {default_avatar_path}")
+#             print(f"Default avatar exists: {os.path.exists(default_avatar_path)}")
+
+#         return Response(data)

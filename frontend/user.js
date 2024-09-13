@@ -46,10 +46,23 @@ function initUser() {
                 </ul>
             </div>
         </div>
+        <div class="mt-4">
+            <h3>Avatar</h3>
+            <img id="userAvatar" alt="User Avatar" class="img-thumbnail mb-2" style="width: 150px; height: 150px;">
+            <form id="avatarForm">
+                <div class="mb-3">
+                    <input type="file" class="form-control" id="avatarInput" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary">Upload Avatar</button>
+            </form>
+        </div>
     `;
 
     loadUserInfo();
     document.getElementById('userForm').addEventListener('submit', updateProfile);
+
+    document.getElementById('avatarForm').addEventListener('submit', uploadAvatar);
+    loadUserAvatar();
 }
 
 async function loadUserInfo() {
@@ -121,6 +134,55 @@ function showUpdateMessage(message, type) {
     setTimeout(() => {
         messageElement.innerHTML = '';
     }, 5000);
+}
+
+async function loadUserAvatar() {
+    const avatarImg = document.getElementById('userAvatar');
+    const response = await fetch('http://localhost:8000/api/user/', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+    });
+    if (response.ok) {
+        const userData = await response.json();
+        console.log("Avatar URL:", userData.avatar);
+        avatarImg.src = userData.avatar;
+        avatarImg.onerror = () => {
+            console.error("Failed to load avatar:", userData.avatar);
+        };
+    }
+}
+
+async function uploadAvatar(event) {
+    event.preventDefault();
+    const formData = new FormData();
+    const fileField = document.getElementById('avatarInput');
+
+    if (fileField.files[0]) {
+        formData.append('avatar', fileField.files[0]);
+
+        try {
+            const response = await fetch('http://localhost:8000/api/user/upload-avatar/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                showUpdateMessage('Avatar uploaded successfully!', 'success');
+                loadUserAvatar();
+            } else {
+                throw new Error('Failed to upload avatar');
+            }
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            showUpdateMessage('Failed to upload avatar. Please try again.', 'danger');
+        }
+    } else {
+        showUpdateMessage('Please select an image to upload.', 'warning');
+    }
 }
 
 // Make initUser available globally

@@ -7,6 +7,8 @@ class CustomUser(AbstractUser):
     losses = models.IntegerField(null=True, default=None)
     enable_2fa = models.BooleanField(null=False, default=False)
     password = models.CharField(null=True, default=None, max_length=260)
+    avatar = models.ImageField(upload_to='static/images/', default='static/images/default-avatar.png')
+
 
     groups = models.ManyToManyField(
         'auth.Group',
