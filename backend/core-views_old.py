@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 def forty_two_login(request):
     base_url = "https://api.intra.42.fr/oauth/authorize"
     params = {
-        'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
-        'redirect_uri': 'http://localhost:8000/api/42/callback/',
+        'client_id': os.environ.get('OAUTH_CLIENT_ID'),
+        'redirect_uri': os.environ.get('OAUTH_CLIENT_REDIRECT_URI'),
         'response_type': 'code',
     }
     url = f"{base_url}?{urllib.parse.urlencode(params)}"
@@ -40,10 +40,10 @@ def forty_two_callback(request):
     token_url = "https://api.intra.42.fr/oauth/token"
     token_data = {
         'grant_type': 'authorization_code',
-        'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
-        'client_secret': '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',
+        'client_id': os.environ.get('OAUTH_CLIENT_ID'),
+        'client_secret': os.environ.get('OAUTH_CLIENT_SECRET'), 
         'code': code,
-        'redirect_uri': 'http://localhost:8000/api/42/callback/',
+        'redirect_uri': os.environ.get('OAUTH_CLIENT_REDIRECT_URI'),
     }
     token_response = requests.post(token_url, data=token_data)
     token_json = token_response.json()
@@ -231,7 +231,7 @@ class OAuthLogin(APIView):
         try:
             base_url = 'https://api.intra.42.fr/oauth/authorize'
             params = {
-                'client_id': 'u-s4t2ud-3f8d76fb565ae2c8b49b3e5a004b06c8508fc22af3ef603d001f7adce5e277e1',
+                'client_id': os.environ.get('OAUTH_CLIENT_ID'),
                 'redirect_uri': 'http://localhost:8000/accounts/42/callback/',
                 'response_type': 'code',
                 'scope': 'public',

@@ -232,7 +232,7 @@ const Auth = (function() {
 async function handleOAuthCallback(code) {
     try {
         console.log("DEbut de la fonction handleoauthcallback")
-        const response = await fetch('http://localhost:8000/api/42/callback/', {
+        const response = await fetch(os.environ.get('OAUTH_CLIENT_REDIRECT_URI'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
