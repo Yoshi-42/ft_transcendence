@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
+from django.contrib.auth import get_user_model
 
 class CustomUser(AbstractUser):
     games_played = models.IntegerField(null=True, default=None)
@@ -27,9 +29,6 @@ class CustomUser(AbstractUser):
         related_query_name='customuser',
     )
 
-from django.db import models
-from django.conf import settings
-
 class MatchHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='matches')
     opponent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='opponent_matches')
@@ -40,3 +39,13 @@ class MatchHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.username} vs {self.opponent.username} - {self.date.strftime('%Y-%m-%d %H:%M')}"
+
+User = get_user_model()
+
+class Friendship(models.Model):
+    user = models.ForeignKey(User, related_name='friendships', on_delete=models.CASCADE)
+    friend = models.ForeignKey(User, related_name='friend_of', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'friend')

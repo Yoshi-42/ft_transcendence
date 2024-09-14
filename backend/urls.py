@@ -24,7 +24,6 @@ urlpatterns = [
     #path('admin/', admin.site.urls),
     path('health/', health_check, name='health_check'),
     path('api/', include('core.urls')),
-
 ]
 
 # if settings.DEBUG:

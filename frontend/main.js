@@ -52,6 +52,7 @@
 		else if (tabId === '3d_pong' && typeof create3DPong === 'function') create3DPong();
         else if (tabId === 'leaderboard' && typeof initLeaderBoard === 'function') initLeaderBoard();
         else if (tabId === 'match-history' && typeof initMatchHistory === 'function') initMatchHistory();
+        else if (tabId === 'friends' && typeof initFriends === 'function') initFriends();
         // else if (tabId === 'test' && typeof initTest === 'function') initTest();
 
         if (pushState) {

@@ -26,6 +26,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .models import MatchHistory
 from django.db import transaction
 from .serializers import MatchHistorySerializer
+from .models import Friendship
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -376,3 +377,56 @@ class RecordMatchView(APIView):
         return Response(serializer.data)
 
         return Response({'status': 'Match recorded successfully', 'match_id': match.id})
+
+class FriendListView(APIView):
+    def get(self, request):
+        friends = Friendship.objects.filter(user=request.user).select_related('friend')
+        serializer = UserSerializer([friendship.friend for friendship in friends], many=True)
+        return Response(serializer.data)
+
+class AddFriendView(APIView):
+    def post(self, request):
+        print("Received data:", request.data)  # Log the received data
+        friend_username = request.data.get('username')
+        print("Friend username:", friend_username)  # Log the extracted username
+        friend_username = request.data.get('username')
+        if friend_username:
+            try:
+                friend = User.objects.get(username=friend_username)
+                if friend == request.user:
+                    return Response({'error': 'You cannot add yourself as a friend'}, status=status.HTTP_400_BAD_REQUEST)
+                friendship, created = Friendship.objects.get_or_create(user=request.user, friend=friend)
+                if created:
+                    return Response({'status': 'friend added'}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({'status': 'already friends'}, status=status.HTTP_200_OK)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'username is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+class RemoveFriendView(APIView):
+    def post(self, request):
+        print("Received data:", request.data)
+        friend_id = request.data.get('friend_id')
+        friend_username = request.data.get('username')
+
+        if not friend_id and not friend_username:
+            return Response({'error': 'friend_id or username is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if friend_id:
+                friend = User.objects.get(id=friend_id)
+            else:
+                friend = User.objects.get(username=friend_username)
+
+            friendship = Friendship.objects.filter(user=request.user, friend=friend).first()
+            if friendship:
+                friendship.delete()
+                return Response({'status': 'friend removed'})
+            else:
+                return Response({'error': 'Friendship not found'}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print("Error:", str(e))
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
