@@ -160,6 +160,7 @@ async function createGame(options = {}) {
                 isGameOver = false;
                 isGameInitialized = false;
                 hasIncrementedLoss = false;
+                updateUserStatus('online');
                 document.getElementById('startGameBtn').style.display = 'block';
                 drawGame();
             }, 100);

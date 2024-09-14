@@ -217,9 +217,10 @@ const Auth = (function() {
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('currentUser');
-        updateUI();
         updateUserStatus('offline');
         stopFriendStatusRefresh();
+        updateUI();
+
 
         // Redirect to web root
         redirectToRoot();
