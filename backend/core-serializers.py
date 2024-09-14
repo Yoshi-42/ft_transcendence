@@ -35,4 +35,9 @@ class MatchHistorySerializer(serializers.ModelSerializer):
     def get_opponent_username(self, obj):
         if obj.opponent:
             return obj.opponent.username
-        return 'AI'  # Cela sera interprété comme 'AI' côté frontend
+        return 'AI'
+
+class FriendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'status']

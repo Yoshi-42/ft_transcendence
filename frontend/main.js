@@ -24,6 +24,12 @@
             currentGameInstance = null;
             console.log("Current instance of the game has been cleaned up");
         }
+        if (tabId !== 'friends') {
+            stopFriendStatusRefresh();
+        }
+        if (tabId === 'friends') {
+            startFriendStatusRefresh();
+        }
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.tab-content');
         tabContents.forEach(tab => tab.style.display = 'none');

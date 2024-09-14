@@ -9,7 +9,9 @@ function initFriends() {
         </div>
     `;
 
-    loadFriends();
+    loadFriends().then(() => {
+        startFriendStatusRefresh();
+    });
     document.getElementById('addFriendBtn').addEventListener('click', addFriend);
 }
 
@@ -36,7 +38,8 @@ function displayFriends(friends) {
     friendList.innerHTML = friends.map(friend => `
         <div class="friend-item">
             ${friend.username}
-            <button onclick="removeFriend(${friend.id}, '${friend.username}')" class="btn btn-sm btn-danger">Remove</button>
+            <span class="friend-status ${friend.status}">${friend.status}</span>
+            <button onclick="removeFriend(${friend.id})" class="btn btn-sm btn-danger">Remove</button>
         </div>
     `).join('');
 }
@@ -89,6 +92,23 @@ async function removeFriend(friendId, friendUsername) {
     } catch (error) {
         console.error('Error removing friend:', error);
         alert(error.message);
+    }
+}
+
+let friendRefreshInterval;
+
+function startFriendStatusRefresh() {
+    // Arrêter tout intervalle existant pour éviter les doublons
+    if (friendRefreshInterval) {
+        clearInterval(friendRefreshInterval);
+    }
+    // Démarrer un nouvel intervalle
+    friendRefreshInterval = setInterval(loadFriends, 30000); // Rafraîchit toutes les 30 secondes
+}
+
+function stopFriendStatusRefresh() {
+    if (friendRefreshInterval) {
+        clearInterval(friendRefreshInterval);
     }
 }
 

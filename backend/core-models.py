@@ -29,6 +29,18 @@ class CustomUser(AbstractUser):
         related_query_name='customuser',
     )
 
+    STATUS_CHOICES = [
+        ('offline', 'Offline'),
+        ('online', 'Online'),
+        ('playing', 'Playing'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='offline')
+    last_activity = models.DateTimeField(auto_now=True)
+
+    def update_status(self, new_status):
+        self.status = new_status
+        self.save(update_fields=['status', 'last_activity'])
+
 class MatchHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='matches')
     opponent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='opponent_matches')

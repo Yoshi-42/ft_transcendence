@@ -266,5 +266,23 @@ function displayMatchHistory(matches) {
     matchHistoryList.innerHTML = matchesHtml;
 }
 
+async function updateUserStatus(status) {
+    try {
+        const response = await fetch('http://localhost:8000/api/user/update-status/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status }),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update status');
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+    }
+}
+
 // Make initUser available globally
 window.initUser = initUser;

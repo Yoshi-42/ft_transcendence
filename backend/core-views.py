@@ -27,6 +27,7 @@ from .models import MatchHistory
 from django.db import transaction
 from .serializers import MatchHistorySerializer
 from .models import Friendship
+from .serializers import FriendSerializer
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -381,7 +382,7 @@ class RecordMatchView(APIView):
 class FriendListView(APIView):
     def get(self, request):
         friends = Friendship.objects.filter(user=request.user).select_related('friend')
-        serializer = UserSerializer([friendship.friend for friendship in friends], many=True)
+        serializer = FriendSerializer([friendship.friend for friendship in friends], many=True)
         return Response(serializer.data)
 
 class AddFriendView(APIView):
@@ -430,3 +431,11 @@ class RemoveFriendView(APIView):
         except Exception as e:
             print("Error:", str(e))
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UpdateUserStatusView(APIView):
+    def post(self, request):
+        new_status = request.data.get('status')
+        if new_status in [choice[0] for choice in CustomUser.STATUS_CHOICES]:
+            request.user.update_status(new_status)
+            return Response({'status': 'updated'})
+        return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)

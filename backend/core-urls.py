@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView, LeaderboardView, OAuthLogin, FortyTwoCallbackView, FortyTwoLoginView, AvatarUploadView, MatchHistoryView, RecordMatchView, FriendListView, AddFriendView, RemoveFriendView
+from .views import SignUpView, SignInView, UserDetailView, UserUpdateView, IncrementGamesPlayedView, IncrementWinsView, IncrementLossesView, VerifyOTPView, LeaderboardView, OAuthLogin, FortyTwoCallbackView, FortyTwoLoginView, AvatarUploadView, MatchHistoryView, RecordMatchView, FriendListView, AddFriendView, RemoveFriendView, UpdateUserStatusView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -22,4 +22,6 @@ urlpatterns = [
     path('friends/', FriendListView.as_view(), name='friend_list'),
     path('friends/add/', AddFriendView.as_view(), name='add_friend'),
     path('friends/remove/', RemoveFriendView.as_view(), name='remove_friend'),
+    path('user/update-status/', UpdateUserStatusView.as_view(), name='update_user_status'),
+
 ]

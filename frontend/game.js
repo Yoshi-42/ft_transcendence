@@ -362,5 +362,6 @@ window.initGame = function(options = {}) {
     }
     // Start a new game and store the cleanup function
     currentGameInstance = createGame(options);
+    updateUserStatus('playing');
     console.log("New game initialized, cleanup function stored");
 };
