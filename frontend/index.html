@@ -105,6 +105,7 @@
                                     <label for="signinPassword" class="form-label">Password</label>
                                     <input type="password" class="form-control" id="signinPassword" required>
                                 </div>
+                                <button id="oauth42Button">Login with 42</button>
                                 <button type="submit" class="btn btn-primary">Sign In</button>
                             </form>
                         </div>
@@ -127,8 +128,6 @@
                                     <input type="checkbox" class="form-check-input" id="enable2FA">
                                 </div>
                                 <body>
-                                    <button id="oauth42Button">Login with 42</button>
-
                                     <script type="text/javascript">
                                         document.getElementById('oauth42Button').addEventListener('click', () => {
                                             window.location.href = 'http://localhost:8000/api/42/login/';

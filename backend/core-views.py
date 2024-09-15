@@ -115,7 +115,7 @@ class FortyTwoCallbackView(APIView):
     # Use urlencode to build the query string
         query_string = urlencode(query_params)
     # Redirect to the URL with the query string
-        return redirect('http://0.0.0.0/#' + query_string)
+        return redirect('https://localhost/#' + query_string)
 
         # else:
         #     return Response(serializer.errors, status=400)
