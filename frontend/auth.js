@@ -210,14 +210,14 @@ const Auth = (function() {
 
     // }
 
-    function signOut() {
+    async function signOut() {
+        await updateUserStatus('offline');
         authToken = null;
         refreshToken = null;
         currentUser = null;
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('currentUser');
-        updateUserStatus('offline');
         stopFriendStatusRefresh();
         updateUI();
 

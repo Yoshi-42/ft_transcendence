@@ -303,6 +303,7 @@ async function createGameT(options = {}, player1, player2) {
             isGameOver = true;
             TisGameActive = false;
             const playerWon = player.score === 5;
+            updateUserStatus('playing');
             await updateWinLossCount(playerWon);
 
 

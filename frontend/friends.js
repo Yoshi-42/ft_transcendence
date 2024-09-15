@@ -136,7 +136,7 @@ function startFriendStatusRefresh() {
         clearInterval(friendRefreshInterval);
     }
     // Démarrer un nouvel intervalle
-    friendRefreshInterval = setInterval(loadFriends, 10000); // Rafraîchit toutes les 30 secondes
+    friendRefreshInterval = setInterval(loadFriends, 5000); // Rafraîchit toutes les 30 secondes
 }
 
 function stopFriendStatusRefresh() {

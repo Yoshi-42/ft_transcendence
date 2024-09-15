@@ -435,7 +435,8 @@ class RemoveFriendView(APIView):
 class UpdateUserStatusView(APIView):
     def post(self, request):
         new_status = request.data.get('status')
-        if new_status in [choice[0] for choice in CustomUser.STATUS_CHOICES]:
-            request.user.update_status(new_status)
+        if new_status in ['online', 'offline', 'playing']:
+            request.user.status = new_status
+            request.user.save(update_fields=['status'])
             return Response({'status': 'updated'})
         return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
