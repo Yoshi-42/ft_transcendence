@@ -363,7 +363,7 @@ console.log("Obscidienne Is Function : " +  onGameEnd + " ");
     if (!isGameOver && TisGameActive) {
         if (e.key === 'w') {
             P1isUpPressed = true;
-        } else if (e.key === 'z') {
+        } else if (e.key === 's') {
             P1isDownPressed = true;
         }
 
@@ -380,7 +380,7 @@ console.log("Obscidienne Is Function : " +  onGameEnd + " ");
         if (!isGameOver && TisGameActive) {
         if (e.key === 'w') {
             P1isUpPressed = false;
-        } else if (e.key === 'z') {
+        } else if (e.key === 's') {
             P1isDownPressed = false;
         }
 
