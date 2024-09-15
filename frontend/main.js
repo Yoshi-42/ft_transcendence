@@ -139,6 +139,7 @@
         // Handle browser back/forward buttons
         window.addEventListener('popstate', handlePopState);
 
+
         // Handle sign out
         document.getElementById('signOutBtn').addEventListener('click', () => {
             Auth.signOut();

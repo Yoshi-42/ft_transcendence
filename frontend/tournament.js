@@ -159,6 +159,8 @@ function startGameWithPlayers(player1, player2) {
 async function createGameT(options = {}, player1, player2) {
     console.log("Creating new game instance");
     updateUserStatus('playing');
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
     if (TisGameInitialized) {
         console.warn("A game is already running. Please end the current game before starting a new one.");
         return null;
@@ -303,8 +305,8 @@ async function createGameT(options = {}, player1, player2) {
             isGameOver = true;
             TisGameActive = false;
             const playerWon = player.score === 5;
-            updateUserStatus('playing');
             await updateWinLossCount(playerWon);
+            await updateUserStatus('online');
 
 
             //setTimeout(() => {
@@ -357,10 +359,11 @@ console.log("Obscidienne Is Function : " +  onGameEnd + " ");
 
   ////PLayer 1  Control////
     function handleKeyDown(e) {
+    console.log('Key pressed:', e.key);
     if (!isGameOver && TisGameActive) {
-        if (e.key === 'Z') {
+        if (e.key === 'w') {
             P1isUpPressed = true;
-        } else if (e.key === 'S') {
+        } else if (e.key === 'z') {
             P1isDownPressed = true;
         }
 
@@ -373,10 +376,11 @@ console.log("Obscidienne Is Function : " +  onGameEnd + " ");
 }
 
 	function handleKeyUp(e) {
-    if (!isGameOver && TisGameActive) {
-        if (e.key === 'Z') {
+        console.log('Key pressed:', e.key);
+        if (!isGameOver && TisGameActive) {
+        if (e.key === 'w') {
             P1isUpPressed = false;
-        } else if (e.key === 'S') {
+        } else if (e.key === 'z') {
             P1isDownPressed = false;
         }
 
@@ -491,6 +495,8 @@ function aiupdatePlayerPosition() {
         ThasIncrementedLoss = false;
         isGameOver = false;
         cancelAnimationFrame(animationFrameId);
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('keyup', handleKeyUp);
         canvas.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         gameTab.innerHTML = ''; // Clear the game area
