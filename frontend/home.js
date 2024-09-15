@@ -9,7 +9,7 @@ function initHome() {
             <div class="col-md-4">
                 <h3>Quick Start</h3>
                 <p>Jump right into a game or explore our features.</p>
-                <button class="btn btn-primary">Play Now</button>
+                <button id="game_btn" class="btn btn-primary">Play Now</button>
             </div>
             <div class="col-md-4">
                 <h3>Leaderboard</h3>
@@ -37,6 +37,14 @@ function initHome() {
             console.error("initTournament function is not defined");
         }
         //initThreeJS();
+    });
+
+    document.getElementById('game_btn').addEventListener('click', () => {
+        if (typeof create3DPong === 'function') {
+        	showTab('game');
+        } else {
+            console.error("initGame function is not defined");
+        }
     });
 
     document.getElementById('leaderboard_btn').addEventListener('click', async () => {
