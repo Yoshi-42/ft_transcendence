@@ -18,13 +18,26 @@
         .modal-backdrop + .modal-backdrop {
             opacity: 0;
         }
-        
+
         @font-face {
         font-family: 'ScoreFont';
         src: url('m_font/RideTheFader-1XKg.ttf') format('truetype');
         font-weight: normal;
         font-style: normal;
-    }
+        }
+
+        .friend-card {
+        transition: all 0.3s ease;
+        }
+
+        .friend-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+        font-size: 0.8em;
+        }
 
     </style>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -46,8 +59,9 @@
             <div class="navbar-nav">
                 <a class="nav-link" id="homeBtn" href="#">Home</a>
                 <a class="nav-link" id="gameBtn" href="#">Game</a>
-                <a class="nav-link" id="userBtn" href="#">User</a>
+                <a class="nav-link" id="userBtn" href="#">Profile</a>
                 <a class="nav-link" id="tournamentBtn" href="#">Tournament</a>
+                <a class="nav-link" id="friendsBtn" href="#">Friends</a>
                 <span class="nav-link" id="welcomeMessage"></span>
                 <i class="fas fa-sign-out-alt" id="signOutBtn" title="Sign Out"></i>
             </div>
@@ -61,7 +75,7 @@
         <div id="tournament" class="tab-content"></div>
         <div id="3d_pong" class="tab-content"></div>
         <div id="leaderboard" class="tab-content"></div>
-        <!-- <div id="test" class="tab-content"></div> -->
+        <div id="friends" class="tab-content"></div>
     </div>
 
     <!-- Auth Modal -->
@@ -182,6 +196,7 @@
     <script src="tournament.js"></script>
     <script src="3d_pong.js"></script>
     <script src="leaderboard.js"></script>
-    <!-- <script src="test.js"></script> -->
+    <script src="match-history.js"></script>
+    <script src="friends.js"></script>
 </body>
 </html>

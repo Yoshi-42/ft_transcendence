@@ -13,7 +13,7 @@ const Auth = (function() {
         refreshToken = localStorage.getItem('refreshToken');
         currentUser = localStorage.getItem('currentUser');
         updateUI();
-        
+
         initModal();
     }
 
@@ -115,6 +115,7 @@ const Auth = (function() {
                 console.log('Refresh token:', refreshToken);  // Log the refresh token
                 hideAuthModal();
                 updateUI();
+                updateUserStatus('online');
                 return true;
             } else {
                 throw new Error('Invalid credentials');
@@ -147,6 +148,7 @@ const Auth = (function() {
                 console.log('Refresh token:', refreshToken);  // Log the refresh token
                 hideAuthModal();
                 updateUI();
+                updateUserStatus('online');
                 return true;
             } else {
                 throw new Error('Error creating account');
@@ -208,15 +210,18 @@ const Auth = (function() {
 
     // }
 
-    function signOut() {
+    async function signOut() {
+        await updateUserStatus('offline');
         authToken = null;
         refreshToken = null;
         currentUser = null;
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('currentUser');
+        stopFriendStatusRefresh();
         updateUI();
-        
+
+
         // Redirect to web root
         redirectToRoot();
     }
@@ -343,5 +348,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('oauth42Button').addEventListener('click', () => {
         Auth.oauthSignUP();
     });
-    
+
 });

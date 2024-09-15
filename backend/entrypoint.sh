@@ -37,7 +37,13 @@ cp core-utils.py /app/core/utils.py
 # Run migrations
 python manage.py makemigrations
 python manage.py migrate
-# python manage.py collectstatic --noinput
+
+# Check avatar files
+python manage.py collectstatic --noinput
+echo "Listing /app/static/images:"
+ls -l /app/static/images
+echo "Listing /app/media/avatars:"
+ls -l /app/media/avatars
 
 
 cp settings-second.py /app/transcendence/settings.py

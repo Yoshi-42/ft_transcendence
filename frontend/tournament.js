@@ -17,9 +17,9 @@ let TisGameActive = false;
 
 function initTournament() {
     const tournamentTab = document.getElementById('tournament');
-    
+
     tournamentTab.innerHTML = `
-        <h1 class="display-4">Tournament Page 38</h1>
+        <h1 class="display-4">Tournament</h1>
         <p class="lead">Join our exciting tournaments and win amazing prizes!</p>
         <hr class="my-4">
         <p>Check out the upcoming tournaments or view the results of past ones.</p>
@@ -35,8 +35,8 @@ function initTournament() {
 
     console.log("Tournament debug : " , tournamentTab);
     console.log("Tournament initialized!");
-   
-    
+
+
     document.getElementById('addPlayerBtn').addEventListener('click', () => {
     const playerNameInput = document.getElementById('playerName');
     const playerName = playerNameInput.value.trim();
@@ -93,7 +93,7 @@ function shuffleArray(array) {
 function playRound(Tplayers) {
     console.log("New Round Starting!");
     const winners = [];
-    
+
     const playMatch = async (player1, player2) => {
         console.log(`Starting match between ${player1} and ${player2}`);
 
@@ -102,9 +102,9 @@ function playRound(Tplayers) {
         winners.push(winner);
         console.log(`${player1} vs ${player2} - Winner: ${winner}`);
     };
-    
-    
-    
+
+
+
     const handleRound = async () => {
         while (Tplayers.length > 1) {
             const player1 = Tplayers.pop();
@@ -124,14 +124,14 @@ function playRound(Tplayers) {
     } else {
     	//ici c'est le vainqueur et la fin du tournois
         console.log(`Tournament Champion: ${winners[0]}`);
-        
+
         alert(`The great winner is : ${winners[0]} `);
-        
+
         initTournament();
         return;
     }
     };
-    
+
     handleRound();
 }
 
@@ -139,8 +139,8 @@ function playRound(Tplayers) {
 function startGameWithPlayers(player1, player2) {
 	console.log("Violet : " + player1 + " , " + player2);
     return new Promise((resolve, reject) => {
-        console.log(`Starting the game between ${player1} and ${player2}`);        
-        
+        console.log(`Starting the game between ${player1} and ${player2}`);
+
         // Initialize the game
         window.initGameT({
             onGameStart: () => console.log('Game started!'),
@@ -148,7 +148,7 @@ function startGameWithPlayers(player1, player2) {
                 console.log(`Game ended. Winner: ${winner}`);
                 resolve(winner);
             }
-        }, player1, player2);        
+        }, player1, player2);
     });
 }
 
@@ -158,6 +158,9 @@ function startGameWithPlayers(player1, player2) {
 
 async function createGameT(options = {}, player1, player2) {
     console.log("Creating new game instance");
+    updateUserStatus('playing');
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
     if (TisGameInitialized) {
         console.warn("A game is already running. Please end the current game before starting a new one.");
         return null;
@@ -170,7 +173,7 @@ async function createGameT(options = {}, player1, player2) {
     }
 
     const { onGameStart = null , onGameEnd = null } = options;
-    
+
     if (typeof onGameEnd !== 'function') {
         console.error('onGameEnd is not a function:', onGameEnd);
     }
@@ -181,7 +184,7 @@ async function createGameT(options = {}, player1, player2) {
         <div id="gameArea" class="mt-4"></div>
         <p> ` + player1 + ` VS ` + player2 + ` </p>
         <button id="startGameBtn" class="btn btn-success mt-3">Start Game</button>
-    `;	
+    `;
 
     // Create canvas
     const canvas = document.createElement('canvas');
@@ -286,7 +289,7 @@ async function createGameT(options = {}, player1, player2) {
         // AI paddle movement
         aiupdatePlayerPosition();
         updatePlayerPosition();
-       	
+
         // Scoring
         if (ball.x - ballSize < 0) {
             ai.score++;
@@ -303,8 +306,9 @@ async function createGameT(options = {}, player1, player2) {
             TisGameActive = false;
             const playerWon = player.score === 5;
             await updateWinLossCount(playerWon);
-            
-            
+            await updateUserStatus('online');
+
+
             //setTimeout(() => {
                 player.score = ai.score = 0;
                 resetBall();
@@ -316,13 +320,13 @@ console.log("Perle " + TisGameInitialized);
                 document.getElementById('startGameBtn').style.display = 'block';
                 drawGame();
 
-            //}, 100);   
+            //}, 100);
  	        console.log("Carmin " + player1 + " " + player2 + "   " + TisGameInitialized);
- 	        
+
 console.log("Obscidienne Is Function : " +  onGameEnd + " ");
-            
+
             if (typeof onGameEnd === 'function') {
-     		   onGameEnd(playerWon ? player1 : player2); 
+     		   onGameEnd(playerWon ? player1 : player2);
     		} else {
                 console.error('onGameEnd is not a function at game end.');
             }
@@ -353,15 +357,16 @@ console.log("Obscidienne Is Function : " +  onGameEnd + " ");
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
-  ////PLayer 1  Control////    
+  ////PLayer 1  Control////
     function handleKeyDown(e) {
+    console.log('Key pressed:', e.key);
     if (!isGameOver && TisGameActive) {
-        if (e.key === 'Z') {
+        if (e.key === 'w') {
             P1isUpPressed = true;
-        } else if (e.key === 'S') {
+        } else if (e.key === 's') {
             P1isDownPressed = true;
         }
-        
+
         if (e.key === 'ArrowUp') {
             P2isUpPressed = true;
         } else if (e.key === 'ArrowDown') {
@@ -371,13 +376,14 @@ console.log("Obscidienne Is Function : " +  onGameEnd + " ");
 }
 
 	function handleKeyUp(e) {
-    if (!isGameOver && TisGameActive) {
-        if (e.key === 'Z') {
+        console.log('Key pressed:', e.key);
+        if (!isGameOver && TisGameActive) {
+        if (e.key === 'w') {
             P1isUpPressed = false;
-        } else if (e.key === 'S') {
+        } else if (e.key === 's') {
             P1isDownPressed = false;
         }
-        
+
         if (e.key === 'ArrowUp') {
             P2isUpPressed = false;
         } else if (e.key === 'ArrowDown') {
@@ -398,7 +404,7 @@ function updatePlayerPosition() {
     }
 }
 
-///Fin player 1 Controle  
+///Fin player 1 Controle
 
 function aiupdatePlayerPosition() {
     if (P2isUpPressed && !P2isDownPressed) {
@@ -411,7 +417,7 @@ function aiupdatePlayerPosition() {
     }
 }
 
-///Fin player 2 Controle 
+///Fin player 2 Controle
 
 	document.addEventListener('keydown', handleKeyDown);
 	document.addEventListener('keyup', handleKeyUp);
@@ -489,6 +495,8 @@ function aiupdatePlayerPosition() {
         ThasIncrementedLoss = false;
         isGameOver = false;
         cancelAnimationFrame(animationFrameId);
+        document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('keyup', handleKeyUp);
         canvas.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         gameTab.innerHTML = ''; // Clear the game area
@@ -500,8 +508,8 @@ function aiupdatePlayerPosition() {
 
 // Make sure initGame is available globally
 window.initGameT = function(options = {}, player1, player2) {
-    
-    
+
+
     console.log("Initializing new game");
 
     // Clean up any existing game before starting a new one
@@ -522,13 +530,13 @@ window.initGameT = function(options = {}, player1, player2) {
     }
 
     console.log("New game initialized, cleanup function stored");
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     //console.log("Initializing new game");
 
     // Clean up any existing game before starting a new one
@@ -547,10 +555,3 @@ window.initTournament = function(options = {}) {
     initTournament2();
 }
 */
-
-
-
-
-
-
-

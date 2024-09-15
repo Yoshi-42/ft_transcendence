@@ -1,10 +1,28 @@
 function initUser() {
     const userTab = document.getElementById('user');
     userTab.innerHTML = `
+        <style>
+            .avatar-container {
+                width: 200px;
+                height: 200px;
+                overflow: hidden;
+                margin: 0 auto;
+            }
+            .avatar-container img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        </style>
         <h1 class="display-4">User Profile</h1>
         <p class="lead">View and edit your user profile here.</p>
         <div class="row mt-4">
-            <div class="col-md-6">
+            <div class="col-md-3">
+                <div class="avatar-container rounded-circle mb-3">
+                    <img id="userAvatar" alt="User Avatar" class="avatar-image">
+                </div>
+            </div>
+            <div class="col-md-9">
                 <form id="userForm" class="needs-validation" novalidate>
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
@@ -28,6 +46,8 @@ function initUser() {
                 </form>
                 <div id="updateMessage" class="mt-3"></div>
             </div>
+        </div>
+        <div class="row mt-4">
             <div class="col-md-6">
                 <h3>Stats</h3>
                 <ul class="list-group">
@@ -45,11 +65,29 @@ function initUser() {
                     </li>
                 </ul>
             </div>
+            <div class="col-md-6">
+                <h3>Update Avatar</h3>
+                <form id="avatarForm">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="avatarInput" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Avatar</button>
+                </form>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h3>Match History</h3>
+                    <div id="matchHistoryList"></div>
+                </div>
+            </div>
         </div>
     `;
 
     loadUserInfo();
     document.getElementById('userForm').addEventListener('submit', updateProfile);
+    document.getElementById('avatarForm').addEventListener('submit', uploadAvatar);
+    loadUserAvatar();
+    loadMatchHistory();
 }
 
 async function loadUserInfo() {
@@ -70,7 +108,6 @@ async function loadUserInfo() {
             document.getElementById('gamesPlayed').textContent = userData.games_played || '0';
             document.getElementById('wins').textContent = userData.wins || '0';
             document.getElementById('losses').textContent = userData.losses || '0';
-            document.getElementById('enable_2fa').checked = userData.enable_2fa;
         } else {
             throw new Error('Failed to load user data');
         }
@@ -91,7 +128,6 @@ async function updateProfile(event) {
 
     const username = document.getElementById('username').value;
     const email = document.getElementById('email').value;
-    const enable_2fa = document.getElementById('enable_2fa').checked;
 
     try {
         const response = await fetch('http://localhost:8000/api/user/update/', {
@@ -100,7 +136,7 @@ async function updateProfile(event) {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, email, enable_2fa }),
+            body: JSON.stringify({ username, email }),
         });
 
         if (response.ok) {
@@ -121,6 +157,131 @@ function showUpdateMessage(message, type) {
     setTimeout(() => {
         messageElement.innerHTML = '';
     }, 5000);
+}
+
+
+async function loadUserAvatar() {
+    const avatarImg = document.getElementById('userAvatar');
+    const response = await fetch('http://localhost:8000/api/user/', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+    });
+    if (response.ok) {
+        const userData = await response.json();
+        console.log("Avatar URL:", userData.avatar);
+        avatarImg.src = userData.avatar;
+        avatarImg.onerror = () => {
+            console.error("Failed to load avatar:", userData.avatar);
+        };
+    }
+}
+
+async function uploadAvatar(event) {
+    event.preventDefault();
+    const formData = new FormData();
+    const fileField = document.getElementById('avatarInput');
+
+    if (fileField.files[0]) {
+        formData.append('avatar', fileField.files[0]);
+
+        try {
+            const response = await fetch('http://localhost:8000/api/user/upload-avatar/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                showUpdateMessage('Avatar uploaded successfully!', 'success');
+                loadUserAvatar();
+            } else {
+                throw new Error('Failed to upload avatar');
+            }
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            showUpdateMessage('Failed to upload avatar. Please try again.', 'danger');
+        }
+    } else {
+        showUpdateMessage('Please select an image to upload.', 'warning');
+    }
+}
+
+async function loadMatchHistory() {
+    try {
+        const response = await fetch('http://localhost:8000/api/match-history/', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            },
+        });
+        if (response.ok) {
+            const matches = await response.json();
+            displayMatchHistory(matches);
+        } else {
+            throw new Error('Failed to load match history');
+        }
+    } catch (error) {
+        console.error('Error loading match history:', error);
+        showUpdateMessage('Failed to load match history. Please try again.', 'danger');
+    }
+}
+
+function displayMatchHistory(matches) {
+    const matchHistoryList = document.getElementById('matchHistoryList');
+    if (matches.length === 0) {
+        matchHistoryList.innerHTML = '<p>No match history available.</p>';
+        return;
+    }
+
+    const matchesHtml = matches.map(match => {
+        // Déterminer l'adversaire
+        const opponent = match.opponent_username || 'AI';
+
+        // Déterminer le résultat
+        let result;
+        if (match.user_score > match.opponent_score) {
+            result = 'Win';
+        } else if (match.user_score < match.opponent_score) {
+            result = 'Loss';
+        } else {
+            result = 'Draw';
+        }
+
+        return `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Match against ${opponent}</h5>
+                    <p class="card-text">
+                        Date: ${new Date(match.date).toLocaleString()}<br>
+                        Score: ${match.user_score} - ${match.opponent_score}<br>
+                        Result: ${result}
+                    </p>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    matchHistoryList.innerHTML = matchesHtml;
+}
+
+async function updateUserStatus(status) {
+    try {
+        const response = await fetch('http://localhost:8000/api/user/update-status/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status }),
+        });
+        if (!response.ok) {
+            throw new Error('Failed to update status');
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+    }
 }
 
 // Make initUser available globally
